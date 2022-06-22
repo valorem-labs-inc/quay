@@ -50,9 +50,15 @@ pub struct ApplicationSettings {
 }
 
 #[derive(serde::Deserialize, Clone)]
+pub struct RPCSettings {
+    pub uri: String,
+}
+
+#[derive(serde::Deserialize, Clone)]
 pub struct Settings {
     pub database: DatabaseSettings,
     pub application: ApplicationSettings,
+    pub rpc: RPCSettings,
 }
 
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {

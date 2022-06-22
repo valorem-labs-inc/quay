@@ -57,6 +57,9 @@ services:
       - key: APP_APPLICATION__BASE_URL
         scope: RUN_TIME
         value: ${APP_URL}
+      - key: APP_RPC__URI
+          scope: RUN_TIME
+          value: ${quay.RPC}
 databases:
   # PG = Postgres
   - engine: PG
