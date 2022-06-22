@@ -52,6 +52,11 @@ services:
       - key: APP_DATABASE__DATABASE_NAME
         scope: RUN_TIME
         value: ${quay.DATABASE}
+      # We use DO's APP_URL to inject the dynamically
+      # provisioned base url as an environment variable
+      - key: APP_APPLICATION__BASE_URL
+        scope: RUN_TIME
+        value: ${APP_URL}
 databases:
   # PG = Postgres
   - engine: PG
