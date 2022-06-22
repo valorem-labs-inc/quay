@@ -29,6 +29,7 @@ unicode-segmentation = "1.9.0"
 validator = "0.15.0"
 ethers = "0.13.0"
 serde_json = "1.0.81"
+anyhow = "1.0.58"
 
 # TODO(sqlx breaks connect_timeout on minor version upgrade, violating semantic versioning)
 [dependencies.sqlx]
