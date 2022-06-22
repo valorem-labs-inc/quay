@@ -27,6 +27,7 @@ reqwest = { version = "0.11.11", default-features = false, features = ["json", "
 serde-aux = "3.0.1"
 unicode-segmentation = "1.9.0"
 validator = "0.15.0"
+ethers = "0.13.0"
 
 # TODO(sqlx breaks connect_timeout on minor version upgrade, violating semantic versioning)
 [dependencies.sqlx]

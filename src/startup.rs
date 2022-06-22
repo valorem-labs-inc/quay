@@ -70,10 +70,14 @@ pub fn run(
         App::new()
             .wrap(TracingLogger::default())
             .service(health_check)
+            .service(offers)
+            .service(listings)
+            .service(create_listing)
+            .service(create_offer)
             .app_data(db_pool.clone())
             .app_data(base_url.clone())
     })
-        .listen(listener)?
-        .run();
+    .listen(listener)?
+    .run();
     Ok(server)
 }

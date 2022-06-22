@@ -1,9 +1,9 @@
 use once_cell::sync::Lazy;
-use sqlx::{Connection, Executor, PgConnection, PgPool};
-use uuid::Uuid;
 use quay::configuration::{get_configuration, DatabaseSettings};
 use quay::startup::{get_connection_pool, Application};
 use quay::telemetry::{get_subscriber, init_subscriber};
+use sqlx::{Connection, Executor, PgConnection, PgPool};
+use uuid::Uuid;
 
 // Ensure that the `tracing` stack is only initialised once using `once_cell`
 static TRACING: Lazy<()> = Lazy::new(|| {
@@ -29,7 +29,6 @@ pub struct TestApp {
 
 pub async fn spawn_app() -> TestApp {
     Lazy::force(&TRACING);
-
 
     // Randomise configuration to ensure test isolation
     let configuration = {
