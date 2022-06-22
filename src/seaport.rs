@@ -35,11 +35,11 @@ pub struct SeaportMarket {
 // TODO(Deal with these clones better)
 impl SeaportMarket {
     pub fn new(provider: Arc<Provider<Http>>) -> Result<SeaportMarket> {
-        // Setup woolf
+        // Setup seaport
         let seaport_address: Address = SEAPORT.parse().unwrap();
         let seaport = Seaport::new(seaport_address, provider.clone());
 
-        // Setup woolf
+        // Setup conduit controller
         let conduit_controller_address: Address = CONDUITCONTROLLER.parse().unwrap();
         let conduit_controller =
             ConduitController::new(conduit_controller_address, provider.clone());
