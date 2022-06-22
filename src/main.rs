@@ -6,7 +6,7 @@ use std::net::TcpListener;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let subscriber = get_subscriber("wharf".into(), "info".into(), std::io::stdout);
+    let subscriber = get_subscriber("quay".into(), "info".into(), std::io::stdout);
     init_subscriber(subscriber);
     let configuration = get_configuration().expect("Failed to read configuration.");
     let address = format!(
