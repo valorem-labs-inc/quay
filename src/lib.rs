@@ -1,4 +1,5 @@
 pub mod configuration;
+pub mod domain;
 pub mod routes;
 pub mod seaport;
 pub mod startup;
