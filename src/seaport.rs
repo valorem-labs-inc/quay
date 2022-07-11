@@ -14,7 +14,7 @@ pub mod seaport_mod {
         types::*,
     };
     use ethers::providers::Middleware;
-    use serde::Deserialize;
+    use serde::{Deserialize, Serialize};
     #[doc = "Seaport was auto-generated with ethers-rs Abigen. More information at: https://github.com/gakonst/ethers-rs"]
     use std::sync::Arc;
     pub static SEAPORT_ABI: ethers::contract::Lazy<ethers::core::abi::Abi> =
@@ -880,6 +880,8 @@ pub mod seaport_mod {
         Default,
         Eq,
         PartialEq,
+        Deserialize,
+        Serialize,
         ethers :: contract :: EthAbiType,
         ethers :: contract :: EthAbiCodec,
     )]
@@ -894,6 +896,8 @@ pub mod seaport_mod {
         Default,
         Eq,
         PartialEq,
+        Deserialize,
+        Serialize,
         ethers :: contract :: EthAbiType,
         ethers :: contract :: EthAbiCodec,
     )]
@@ -911,6 +915,8 @@ pub mod seaport_mod {
         Default,
         Eq,
         PartialEq,
+        Serialize,
+        Deserialize,
         ethers :: contract :: EthAbiType,
         ethers :: contract :: EthAbiCodec,
     )]
@@ -942,6 +948,7 @@ pub mod seaport_mod {
         Eq,
         PartialEq,
         Deserialize,
+        Serialize,
         ethers :: contract :: EthAbiType,
         ethers :: contract :: EthAbiCodec,
     )]
@@ -960,6 +967,8 @@ pub mod seaport_mod {
         Default,
         Eq,
         PartialEq,
+        Serialize,
+        Deserialize,
         ethers :: contract :: EthAbiType,
         ethers :: contract :: EthAbiCodec,
     )]
@@ -977,6 +986,8 @@ pub mod seaport_mod {
         Default,
         Eq,
         PartialEq,
+        Serialize,
+        Deserialize,
         ethers :: contract :: EthAbiType,
         ethers :: contract :: EthAbiCodec,
     )]
@@ -993,6 +1004,7 @@ pub mod seaport_mod {
         Eq,
         PartialEq,
         Deserialize,
+        Serialize,
         ethers :: contract :: EthAbiType,
         ethers :: contract :: EthAbiCodec,
     )]
@@ -1008,6 +1020,7 @@ pub mod seaport_mod {
         Eq,
         PartialEq,
         Deserialize,
+        Serialize,
         ethers :: contract :: EthAbiType,
         ethers :: contract :: EthAbiCodec,
     )]
@@ -1023,6 +1036,7 @@ pub mod seaport_mod {
         Eq,
         PartialEq,
         Deserialize,
+        Serialize,
         ethers :: contract :: EthAbiType,
         ethers :: contract :: EthAbiCodec,
     )]
@@ -1041,6 +1055,7 @@ pub mod seaport_mod {
         Eq,
         PartialEq,
         Deserialize,
+        Serialize,
         ethers :: contract :: EthAbiType,
         ethers :: contract :: EthAbiCodec,
     )]
@@ -1056,6 +1071,7 @@ pub mod seaport_mod {
         Eq,
         PartialEq,
         Deserialize,
+        Serialize,
         ethers :: contract :: EthAbiType,
         ethers :: contract :: EthAbiCodec,
     )]
@@ -1080,6 +1096,7 @@ pub mod seaport_mod {
         Eq,
         PartialEq,
         Deserialize,
+        Serialize,
         ethers :: contract :: EthAbiType,
         ethers :: contract :: EthAbiCodec,
     )]
@@ -1104,6 +1121,7 @@ pub mod seaport_mod {
         Eq,
         PartialEq,
         Deserialize,
+        Serialize,
         ethers :: contract :: EthAbiType,
         ethers :: contract :: EthAbiCodec,
     )]
