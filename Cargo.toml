@@ -10,8 +10,9 @@ path = "src/lib.rs"
 
 [dependencies]
 actix-web = "4.1.0"
+paperclip = { version = "0.6.1", features = ["actix", "openapiv3"] }
 tokio = { version = "1.19.2", features = ["macros", "rt-multi-thread"] }
-serde = "1.0.137"
+serde = { version = "1.0", features = ["derive"] }
 # TODO(Config breaks TryFrom between 0.11 -> 0.13, violating semantic versioning)
 config = { version = "0.11", default-features = false, features = ["yaml"] }
 uuid = { version = "0.8.1", features = ["v4", "serde"] }

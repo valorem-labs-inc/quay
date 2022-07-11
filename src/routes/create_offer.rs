@@ -57,6 +57,6 @@ use actix_web::{post, web, HttpResponse, Responder};
 // }
 
 #[post("/offers")]
-async fn create_offer(_form: web::Form<Order>) -> impl Responder {
+async fn create_offer(_offer: web::Json<Order>) -> impl Responder {
     HttpResponse::Ok()
 }
