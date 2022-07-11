@@ -56,7 +56,7 @@ use actix_web::{post, web, HttpResponse, Responder};
 //     "signature": "0x",
 // }
 
-#[post("/offers")]
-async fn create_listing(_form: web::Form<Order>) -> impl Responder {
+#[post("/listings")]
+async fn create_listing(_form: web::Json<Order>) -> impl Responder {
     HttpResponse::Ok()
 }
