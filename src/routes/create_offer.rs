@@ -1,10 +1,9 @@
 use crate::seaport::Order;
 use actix_web::{post, web, HttpResponse, Responder};
 
-// TODO(Implement model)
 // TODO(Implement queries)
 // Cleanroom rewrite of: https://docs.opensea.io/v2.0/reference/create-an-offer
-// Differes a bit from the opensea struct, sticking with rust style key naming
+// Differs a bit from the opensea struct, sticking with rust style key naming
 //
 // {
 //     "parameters": {
