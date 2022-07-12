@@ -70,10 +70,11 @@ pub fn run(
     rpc: Provider<Http>,
 ) -> Result<Server, std::io::Error> {
     let db_pool = web::Data::new(db_pool);
-    let seaport = Seaport::new(
+    let provider = Arc::new(rpc);
+    let seaport = web::Data::new(Seaport::new(
         H160::from_str("0x00000000006c3852cbEf3e08E8dF289169EdE581").unwrap(),
-        Arc::new(rpc),
-    );
+        provider,
+    ));
     let server = HttpServer::new(move || {
         App::new()
             .wrap(TracingLogger::default())
