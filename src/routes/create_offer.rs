@@ -1,6 +1,5 @@
-use crate::seaport::{Order, OrderComponents, Seaport};
+use crate::seaport::{Order, Seaport};
 use actix_web::{post, web, HttpResponse};
-use ethers::abi::Address;
 use ethers::prelude::*;
 use sqlx::PgPool;
 
@@ -17,11 +16,7 @@ async fn create_offer(
     pool: web::Data<PgPool>,
     seaport: web::Data<Seaport<Provider<ethers::providers::Http>>>,
 ) -> HttpResponse {
-    let new_offer = match offer.0.try_into() {
-        Ok(offer) => offer,
-        Err(_) => return HttpResponse::BadRequest().finish(),
-    };
-    if insert_offer(&pool, &new_offer, &seaport).await.is_err() {
+    if insert_offer(&pool, &offer, &seaport).await.is_err() {
         return HttpResponse::InternalServerError().finish();
     }
     HttpResponse::Ok().finish()

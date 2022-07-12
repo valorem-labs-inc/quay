@@ -1,7 +1,6 @@
 use actix_web::dev::Server;
 use actix_web::{web, App, HttpServer};
 use ethers::prelude::*;
-use reqwest::Url;
 use sqlx::PgPool;
 use std::net::TcpListener;
 use std::str::FromStr;
