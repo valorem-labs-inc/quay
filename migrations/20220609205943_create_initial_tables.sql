@@ -2,10 +2,6 @@
 -- https://dba.stackexchange.com/questions/62934/adding-unsigned-256-bit-integers-in-postgresql
 
 -- Create a type for 256 bit unsigned integers
-CREATE DOMAIN uint_256 AS NUMERIC NOT NULL
-    CHECK (VALUE >= 0 AND VALUE < 2 ^ 256)
-    CHECK (SCALE(VALUE) = 0);
-
 -- TODO(Should accounts be represented as a uint160 rather than a hex string)
 -- TODO(Should bytes32 be uint256 rather than a hex string)
 -- TODO(Will it be easier to store uint256 as a CHAR(64) hex?)
@@ -20,6 +16,8 @@ CREATE TABLE addresses
     address CHAR(40) PRIMARY KEY
 );
 
+-- TODO(Protocol data)
+-- TODO(Protocol address)
 CREATE TABLE orders
 (
     id               BIGSERIAL PRIMARY KEY,

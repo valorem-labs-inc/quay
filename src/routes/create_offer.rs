@@ -1,4 +1,5 @@
-use crate::seaport::{Order, Seaport};
+use crate::seaport;
+use crate::seaport::{Order, OrderComponents, Seaport};
 use actix_web::{post, web, HttpResponse};
 use ethers::prelude::*;
 use sqlx::PgPool;
@@ -34,13 +35,11 @@ pub async fn insert_offer(
     // TODO(Implement queries)
     // The order model in the database differs significantly from the contract order parameters
     // Hashes are used, which must be updated from indexed events
-    //let order_hash =
-    let order_status = seaport
-        .get_order_status([
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0,
-        ])
+    let order_hash = seaport
+        .get_order_hash(OrderComponents::from_parameters(&new_offer.parameters))
         .call()
-        .await;
+        .await
+        .expect("failed to calculate hash");
+    let order_status = seaport.get_order_status(order_hashc).call().await;
     Ok(())
 }

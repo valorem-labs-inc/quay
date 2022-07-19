@@ -1100,6 +1100,28 @@ pub mod seaport_mod {
         ethers :: contract :: EthAbiType,
         ethers :: contract :: EthAbiCodec,
     )]
+    impl OrderComponents {
+        pub fn from_parameters(parameters: &OrderParameters) -> OrderComponents {
+            let counter = seaport
+                .get_counter(new_offer.parameters.offerer)
+                .call()
+                .await
+                .expect("failed to read counter");
+            OrderComponents {
+                offerer: parameters.offerer,
+                zone: parameters.zone,
+                offer: parameters.offer.clone(),
+                consideration: parameters.consideration.clone(),
+                order_type: parameters.order_type,
+                start_time: parameters.start_time,
+                end_time: parameters.end_time,
+                zone_hash: parameters.zone_hash,
+                salt: parameters.salt,
+                conduit_key: parameters.conduit_key,
+                counter,
+            }
+        }
+    }
     pub struct OrderParameters {
         pub offerer: ethers::core::types::Address,
         pub zone: ethers::core::types::Address,
