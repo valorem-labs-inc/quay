@@ -1,4 +1,3 @@
-use crate::seaport;
 use crate::seaport::{Order, OrderComponents, Seaport};
 use actix_web::{post, web, HttpResponse};
 use ethers::prelude::*;
@@ -25,10 +24,10 @@ async fn create_offer(
 
 #[tracing::instrument(
     name = "Saving new offer details in the database",
-    skip(new_offer, pool, seaport)
+    skip(new_offer, _pool, seaport)
 )]
 pub async fn insert_offer(
-    pool: &PgPool,
+    _pool: &PgPool,
     new_offer: &Order,
     seaport: &Seaport<Provider<Http>>,
 ) -> Result<(), sqlx::Error> {
@@ -36,10 +35,14 @@ pub async fn insert_offer(
     // The order model in the database differs significantly from the contract order parameters
     // Hashes are used, which must be updated from indexed events
     let order_hash = seaport
-        .get_order_hash(OrderComponents::from_parameters(&new_offer.parameters))
+        .get_order_hash(OrderComponents::from_parameters(seaport, &new_offer.parameters).await)
         .call()
         .await
         .expect("failed to calculate hash");
-    let order_status = seaport.get_order_status(order_hashc).call().await;
+    let _order_status = seaport
+        .get_order_status(order_hash)
+        .call()
+        .await
+        .expect("failed to get order status");
     Ok(())
 }
