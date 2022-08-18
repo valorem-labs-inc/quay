@@ -55,6 +55,11 @@ schemas live in `migrations/`, and the database queries are inline where used
 on the objects (SQL speaking objects). The database connection is handled in a
 connection pool at application startup.
 
+#### Generating queries for macros
+
+When new queries are added, run `DATABASE_URL=postgres://postgres:password@localhost:5432/quay cargo sqlx prepare -- --lib`
+to generate new query definitions for the macro expansion used by sqlx.
+
 #### Migrations
 
 Database schema migrations are performed out of band with
@@ -63,6 +68,11 @@ tested locally, and applied in a non-breaking fashion. What this means, ideally,
 is that there is a migration to add new functionality, then a rollout of the new
 backend version, then another migration to delete any legacy schema after roll
 out.
+
+##### How to run migration using `sqlx-cli`
+1. `sqlx migrate add '<MIGRATION_NAME>'`;
+2. Write all necesarry queries in `migrations/<MIGRATION_NAME>`;
+3. Apply for local db (if it's required for testing): `sqlx migrate run`;
 
 ### Smart contract interactions and data structures
 

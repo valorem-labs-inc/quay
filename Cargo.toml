@@ -16,6 +16,7 @@ serde = { version = "1.0.140", features = ["derive"] }
 # TODO(Config breaks TryFrom between 0.11 -> 0.13, violating semantic versioning)
 config = { version = "0.11", default-features = false, features = ["yaml"] }
 uuid = { version = "1.1.2", features = ["v4", "serde"] }
+futures = "0.3.16"
 chrono = "0.4"
 log = "0.4.17"
 tracing = "0.1.35"
@@ -28,6 +29,7 @@ reqwest = { version = "0.11.11", default-features = false, features = ["json", "
 serde-aux = "3.1.0"
 ethers = "0.14.0"
 serde_json = "1.0.82"
+anyhow = "1.0.60"
 
 # TODO(sqlx breaks connect_timeout on minor version upgrade, violating semantic versioning)
 [dependencies.sqlx]

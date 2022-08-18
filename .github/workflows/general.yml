@@ -38,6 +38,8 @@ jobs:
           cargo install --version=0.5.7 sqlx-cli --no-default-features --features postgres
           SKIP_DOCKER=true ./scripts/init_db.sh
       - uses: actions-rs/cargo@v1
+        env:
+          APP_RPC__URI: ${{ secrets.APP_RPC__URI }}
         with:
           command: test
 
@@ -114,5 +116,7 @@ jobs:
           SKIP_DOCKER=true ./scripts/init_db.sh
       - name: Run cargo-tarpaulin
         uses: actions-rs/tarpaulin@v0.1
+        env:
+          APP_RPC__URI: ${{ secrets.APP_RPC__URI }}
         with:
           args: '--ignore-tests --avoid-cfg-tarpaulin'
