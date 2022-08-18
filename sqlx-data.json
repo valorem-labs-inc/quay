@@ -1,3 +1,74 @@
 {
-  "db": "PostgreSQL"
+  "db": "PostgreSQL",
+  "138a4848aedc1fa89e7eca53bd44de3f9a9b1c0fcf1e157c4db61cd766c138da": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Text",
+          "Int4",
+          "Text",
+          "Text",
+          "Text",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "INSERT INTO considerations (position, \"order\", item_type, token, identifier_or_criteria, start_amount, end_amount, recipient) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (position, \"order\") DO NOTHING"
+  },
+  "52e41630c675d276ce44b4926d6a36772e1bcc42a8aa4107fb97e29df29ebc6b": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "INSERT INTO addresses (address) VALUES ($1) ON CONFLICT (address) DO NOTHING"
+  },
+  "9dfa60dbd00656de0286dc43ffbfebacda20a58297b71ca84c60c267982d0bad": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Text",
+          "Int4",
+          "Text",
+          "Text",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "INSERT INTO offers (position, \"order\", item_type, token, identifier_or_criteria, start_amount, end_amount) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (position, \"order\") DO NOTHING"
+  },
+  "fb2d17fb7cb55ea5c1b8036cad7f8ffbee81af1f4ac9437dc8439cde7ff5a58d": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text",
+          "Text",
+          "Text",
+          "Int8",
+          "Int8",
+          "Int4",
+          "Int4",
+          "Text",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "INSERT INTO orders (hash, offerer, zone, zone_hash, start_time, end_time,\n        order_type, total_original_consideration_items, salt, conduit_key, signature)\n        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) ON CONFLICT (hash) DO NOTHING"
+  }
 }

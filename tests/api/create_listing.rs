@@ -73,7 +73,7 @@ async fn create_listing_works() {
     // Act
     let response = client
         // Use the returned application address
-        .post(&format!("{}/offers", &app.address))
+        .post(&format!("{}/listings", &app.address))
         .json(&json_body)
         .send()
         .await
