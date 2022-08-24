@@ -1,9 +1,10 @@
 use once_cell::sync::Lazy;
+use sqlx::{Connection, Executor, PgConnection, PgPool};
+use uuid::Uuid;
+
 use quay::configuration::{get_configuration, DatabaseSettings};
 use quay::startup::{get_connection_pool, Application};
 use quay::telemetry::{get_subscriber, init_subscriber};
-use sqlx::{Connection, Executor, PgConnection, PgPool};
-use uuid::Uuid;
 
 // Ensure that the `tracing` stack is only initialised once using `once_cell`
 static TRACING: Lazy<()> = Lazy::new(|| {
@@ -25,6 +26,8 @@ pub struct TestApp {
     pub port: u16,
     pub address: String,
     pub db_pool: PgPool,
+    pub rpc: String,
+    pub api: reqwest::Client,
 }
 
 pub async fn spawn_app() -> TestApp {
@@ -51,11 +54,16 @@ pub async fn spawn_app() -> TestApp {
     // Get the port before spawning the application
     let address = format!("http://127.0.0.1:{}", application.port());
     let _ = tokio::spawn(application.run_until_stopped());
-
+    let api = reqwest::Client::builder()
+        .cookie_store(true)
+        .build()
+        .unwrap();
     TestApp {
         port,
         address,
         db_pool: get_connection_pool(&configuration.database),
+        rpc: configuration.rpc.uri.clone(),
+        api,
     }
 }
 
