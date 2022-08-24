@@ -4,7 +4,7 @@ use quay::telemetry::{get_subscriber, init_subscriber};
 
 #[actix_web::main]
 async fn main() -> anyhow::Result<()> {
-    let subscriber = get_subscriber("jetty".into(), "info".into(), std::io::stdout);
+    let subscriber = get_subscriber("quay".into(), "info".into(), std::io::stdout);
     init_subscriber(subscriber);
 
     let configuration = get_configuration().expect("Failed to read configuration.");
