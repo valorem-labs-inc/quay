@@ -5,7 +5,6 @@ use actix_web::{get, post, web, HttpResponse};
 use ethers::abi::Address;
 use siwe;
 use std::time::SystemTime;
-use tracing::info;
 
 #[get("/nonce")]
 #[tracing::instrument(name = "Getting an EIP-4361 nonce for session", skip(session))]
@@ -34,20 +33,20 @@ async fn verify(session: TypedSession, signed_message: web::Json<SignedMessage>)
     // Infallible becasuse the signature has already been validated
     let message = signed_message.message.clone();
     // The frontend must set a session expiry
-    match session.get_nonce() {
-        Ok(_) => {}
+    let session_nonce = match session.get_nonce() {
+        Ok(nonce) => match nonce {
+            Some(no) => no,
+            None => return HttpResponse::UnprocessableEntity().body("Failed to get nonce"),
+        },
         // Invalid nonce
         Err(_) => return HttpResponse::UnprocessableEntity().body("Failed to get nonce"),
-    }
-
-    info!("{}", message.to_string());
-    info!("{}", signed_message.signature);
+    };
 
     // Verify the signed message
     match message.verify(
         signed_message.signature.0,
         Option::None,
-        Option::Some(message.nonce.as_str()),
+        Option::Some(session_nonce.as_str()),
         Option::None,
     ) {
         Ok(_) => {}
