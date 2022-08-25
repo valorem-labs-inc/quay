@@ -3,7 +3,6 @@ use actix_web::{post, web, HttpResponse};
 use anyhow::Error;
 use ethers::abi::AbiEncode;
 use ethers::prelude::*;
-use ethers::utils::parse_bytes32_string;
 use sqlx::PgPool;
 
 #[post("/offers")]
@@ -84,7 +83,7 @@ pub async fn insert_offer(
             .total_original_consideration_items
             .as_u32() as i32,
         new_offer.parameters.salt.to_string(),
-        parse_bytes32_string(&new_offer.parameters.conduit_key)?,
+        new_offer.parameters.conduit_key.encode_hex(),
         // new_offer.parameters.nonce,
         new_offer.signature.to_string()
     )
