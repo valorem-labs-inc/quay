@@ -1,10 +1,9 @@
+use crate::seaport::{Order, OrderComponents, Seaport};
 use actix_web::{post, web, HttpResponse};
 use anyhow::Error;
 use ethers::abi::AbiEncode;
 use ethers::prelude::*;
 use sqlx::PgPool;
-
-use crate::seaport::{Order, OrderComponents, Seaport};
 
 // TODO(Implement queries)
 // Cleanroom rewrite of: https://docs.opensea.io/v2.0/reference/create-an-order
