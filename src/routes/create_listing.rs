@@ -1,11 +1,9 @@
+use crate::seaport::{Order, OrderComponents, Seaport};
 use actix_web::{post, web, HttpResponse};
 use anyhow::Error;
 use ethers::abi::AbiEncode;
 use ethers::prelude::*;
-use ethers::utils::parse_bytes32_string;
 use sqlx::PgPool;
-
-use crate::seaport::{Order, OrderComponents, Seaport};
 
 // TODO(Implement queries)
 // Cleanroom rewrite of: https://docs.opensea.io/v2.0/reference/create-an-order
@@ -87,7 +85,7 @@ pub async fn insert_listing(
             .total_original_consideration_items
             .as_u32() as i32,
         new_listing.parameters.salt.to_string(),
-        parse_bytes32_string(&new_listing.parameters.conduit_key)?,
+        new_listing.parameters.conduit_key.encode_hex(),
         // new_listing.parameters.nonce,
         new_listing.signature.to_string()
     )
