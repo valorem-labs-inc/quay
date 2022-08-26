@@ -125,6 +125,19 @@
     },
     "query": "INSERT INTO addresses (address) VALUES ($1) ON CONFLICT (address) DO NOTHING"
   },
+  "890116bfb77b847443def9a05697828f7f417074e7ffdeb07ca0762c3f53d01e": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Int8"
+        ]
+      }
+    },
+    "query": "INSERT INTO networks (network, indexed_block) VALUES ($1, $2) ON CONFLICT DO NOTHING"
+  },
   "8d124332483fc2c35a102aaa8accc44ec59b2cc34365d4a66d0c1d61329bdc8c": {
     "describe": {
       "columns": [
@@ -236,6 +249,71 @@
       }
     },
     "query": "INSERT INTO offers (position, \"order\", item_type, token, identifier_or_criteria, start_amount, end_amount) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (position, \"order\") DO NOTHING"
+  },
+  "a0d912fb0b10dc88734914b3c16a3213febee0c92279d517ee342414e579354f": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Int8"
+        ]
+      }
+    },
+    "query": "UPDATE networks SET indexed_block = $2 WHERE network = $1"
+  },
+  "b4b0f2f367afd2f81a8c130f30519e10232bfce97ca55ad84224fe420fd33dcc": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Bool"
+        ]
+      }
+    },
+    "query": "UPDATE orders SET cancelled = $2 WHERE hash = $1"
+  },
+  "df998a15682d6e183e2cdd9b21413b81f8f4c3247536f174440a2ea34adf12ed": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Bool"
+        ]
+      }
+    },
+    "query": "UPDATE orders SET finalized = $2 WHERE hash = $1"
+  },
+  "eb8ce485fbb3e88ecc676e8eed36873ec611eea11c581efb36efaa9d9ffd8ffe": {
+    "describe": {
+      "columns": [
+        {
+          "name": "network",
+          "ordinal": 0,
+          "type_info": "Int4"
+        },
+        {
+          "name": "indexed_block",
+          "ordinal": 1,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      }
+    },
+    "query": "SELECT network, indexed_block FROM networks WHERE network = $1"
   },
   "fb2d17fb7cb55ea5c1b8036cad7f8ffbee81af1f4ac9437dc8439cde7ff5a58d": {
     "describe": {
