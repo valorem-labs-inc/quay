@@ -1,14 +1,17 @@
 use quay::configuration::get_configuration;
-use quay::startup::Application;
+use quay::indexer;
 use quay::telemetry::{get_subscriber, init_subscriber};
+use tracing::error;
 
-#[actix_web::main]
-async fn main() -> anyhow::Result<()> {
+fn main() {
     let subscriber = get_subscriber("quay".into(), "info".into(), std::io::stdout);
     init_subscriber(subscriber);
 
     let configuration = get_configuration().expect("Failed to read configuration.");
-    let application = Application::build(configuration).await?;
-    application.run_until_stopped().await?;
-    Ok(())
+    if let Err(e) = indexer::run(configuration) {
+        error!("Unhandled application error, panicking.");
+        panic!("{}", e);
+
+        // Later, when there are handled cases: process::exit(2..n);
+    }
 }

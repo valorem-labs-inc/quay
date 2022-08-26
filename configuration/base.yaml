@@ -6,5 +6,5 @@ database:
   port: 5432
   username: "postgres"
   password: "password"
-  database_name: "jetty"
+  database_name: "quay"
 redis_url: "redis://127.0.0.1:6379"

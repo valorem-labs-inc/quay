@@ -35,7 +35,10 @@ CREATE TABLE orders
     total_original_consideration_items INT NOT NULL,
     salt TEXT NOT NULL,
     conduit_key TEXT NOT NULL,
-    signature TEXT NOT NULL
+    signature TEXT NOT NULL,
+    cancelled BOOLEAN NOT NULL DEFAULT FALSE,
+    finalized BOOLEAN NOT NULL DEFAULT FALSE,
+    marked_invalid BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE offers
