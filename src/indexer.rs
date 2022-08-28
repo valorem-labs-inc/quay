@@ -140,7 +140,7 @@ impl Indexer {
 
     async fn process_block(&self, block_number: U64) -> Result<()> {
         // TODO(Enqueue and await the futures of all db operations in a vec for a speedup)
-        if block_number >= U64::from(14946474) {
+        if block_number >= U64::from(10835536) {
             let fulfilled = self
                 .seaport
                 .order_fulfilled_filter()
@@ -175,8 +175,8 @@ impl Indexer {
         let mut block_stream = watcher.watch_blocks().await?;
         // One block before the eth registrar controller was deployed
         // was block # 9380470
-        let deploy_block: i64 = 14946474;
-        init_network(&self.pool, &1, &deploy_block).await?;
+        let deploy_block: i64 = 10835536;
+        init_network(&self.pool, &4, &deploy_block).await?;
         let mut next_block_to_process = U64::from(get_network(&self.pool, &1).await?.indexed_block);
         let mut block_number: U64;
         while block_stream.next().await.is_some() {
