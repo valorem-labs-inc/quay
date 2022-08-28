@@ -61,47 +61,8 @@ services:
         scope: RUN_TIME
         value: ${APP_URL}
       - key: APP_RPC__URI
-          scope: RUN_TIME
-          value: ${api.RPC}
-workers:
-  - name: indexer
-      # Relative to the repository root
-      dockerfile_path: indexer.dockerfile
-      source_dir: .
-      github:
-        # Depending on when you created the repository,
-        # the default branch on GitHub might have been named `master`
-        branch: master
-        # Deploy a new version on every commit to `main`!
-        # Continuous Deployment, here we come!
-        deploy_on_push: true
-        # !!! Fill in with your details
-        repo: Alcibiades-Capital/quay
-      # The port the application will be listening on for incoming requests
-      # For production workloads we'd go for at least two!
-      # But let's try to keep the bill under control for now...
-      instance_count: 1
-      instance_size_slug: basic-xxs
-      # All incoming requests should be routed to our app
-      envs:
-        - key: APP_DATABASE__USERNAME
-          scope: RUN_TIME
-          value: ${indexer.USERNAME}
-        - key: APP_DATABASE__PASSWORD
-          scope: RUN_TIME
-          value: ${indexer.PASSWORD}
-        - key: APP_DATABASE__HOST
-          scope: RUN_TIME
-          value: ${indexer.HOSTNAME}
-        - key: APP_DATABASE__PORT
-          scope: RUN_TIME
-          value: ${indexer.PORT}
-        - key: APP_DATABASE__DATABASE_NAME
-          scope: RUN_TIME
-          value: ${indexer.DATABASE}
-        - key: APP_RPC__URI
-            scope: RUN_TIME
-            value: ${indexer.RPC}
+        scope: RUN_TIME
+        value: ${api.RPC}
 databases:
   # PG = Postgres
   - engine: PG
