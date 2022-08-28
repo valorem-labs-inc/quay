@@ -171,13 +171,15 @@ impl Indexer {
 
     async fn run(&mut self) -> Result<()> {
         let batch = 50;
+        let network_id = 4;
         let watcher = self.provider.clone();
         let mut block_stream = watcher.watch_blocks().await?;
         // One block before the eth registrar controller was deployed
         // was block # 9380470
-        let deploy_block: i64 = 10835536;
-        init_network(&self.pool, &4, &deploy_block).await?;
-        let mut next_block_to_process = U64::from(get_network(&self.pool, &1).await?.indexed_block);
+        let start_indexing_block: i64 = 10835536;
+        init_network(&self.pool, &network_id, &start_indexing_block).await?;
+        let mut next_block_to_process =
+            U64::from(get_network(&self.pool, &network_id).await?.indexed_block);
         let mut block_number: U64;
         while block_stream.next().await.is_some() {
             block_number = self
@@ -203,10 +205,10 @@ impl Indexer {
                 let mut tasks = vec![];
                 while next_block_to_process <= end_batch {
                     tasks.push(self.process_block(next_block_to_process));
-                    next_block_to_process += U64::from(1);
+                    next_block_to_process += U64::from(network_id);
                 }
                 futures::future::join_all(tasks).await;
-                update_network(&self.pool, &1, &(end_batch.as_u64() as i64 + 1)).await?;
+                update_network(&self.pool, &network_id, &(end_batch.as_u64() as i64 + 1)).await?;
             }
         }
         Ok(())
