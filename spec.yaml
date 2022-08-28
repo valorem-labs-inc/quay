@@ -39,19 +39,22 @@ services:
     envs:
       - key: APP_DATABASE__USERNAME
         scope: RUN_TIME
-        value: ${quay.USERNAME}
+        value: ${api.USERNAME}
       - key: APP_DATABASE__PASSWORD
         scope: RUN_TIME
-        value: ${quay.PASSWORD}
+        value: ${api.PASSWORD}
       - key: APP_DATABASE__HOST
         scope: RUN_TIME
-        value: ${quay.HOSTNAME}
+        value: ${api.HOSTNAME}
       - key: APP_DATABASE__PORT
         scope: RUN_TIME
-        value: ${quay.PORT}
+        value: ${api.PORT}
       - key: APP_DATABASE__DATABASE_NAME
         scope: RUN_TIME
-        value: ${quay.DATABASE}
+        value: ${api.DATABASE}
+      - key: APP_REDIS_URL
+        scope: RUN_TIME
+        value: ${api.REDIS}
       # We use DO's APP_URL to inject the dynamically
       # provisioned base url as an environment variable
       - key: APP_APPLICATION__BASE_URL
@@ -59,7 +62,7 @@ services:
         value: ${APP_URL}
       - key: APP_RPC__URI
           scope: RUN_TIME
-          value: ${quay.RPC}
+          value: ${api.RPC}
 workers:
   - name: indexer
       # Relative to the repository root
@@ -83,22 +86,22 @@ workers:
       envs:
         - key: APP_DATABASE__USERNAME
           scope: RUN_TIME
-          value: ${quay.USERNAME}
+          value: ${indexer.USERNAME}
         - key: APP_DATABASE__PASSWORD
           scope: RUN_TIME
-          value: ${quay.PASSWORD}
+          value: ${indexer.PASSWORD}
         - key: APP_DATABASE__HOST
           scope: RUN_TIME
-          value: ${quay.HOSTNAME}
+          value: ${indexer.HOSTNAME}
         - key: APP_DATABASE__PORT
           scope: RUN_TIME
-          value: ${quay.PORT}
+          value: ${indexer.PORT}
         - key: APP_DATABASE__DATABASE_NAME
           scope: RUN_TIME
-          value: ${quay.DATABASE}
+          value: ${indexer.DATABASE}
         - key: APP_RPC__URI
             scope: RUN_TIME
-            value: ${quay.RPC}
+            value: ${indexer.RPC}
 databases:
   # PG = Postgres
   - engine: PG
