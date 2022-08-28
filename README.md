@@ -48,6 +48,15 @@ async fn create_offer(
 }
 ```
 
+### SIWE Authentication
+
+This project supports EIP-4361 (Sign in with Ethereum) authentication. See 
+`src/routes/sessions.rs` for implementation details.
+
+### Redis
+
+Redis is used for SIWE session storage. 
+
 ### Database
 
 The database schema and queries are written in SQL and managed with `sqlx`. The
@@ -87,11 +96,12 @@ at application startup.
 
 Developers will need rust and docker to work on this project. Docker is used
 to host a local instance  of the postgres database to execute tests against.
-To set up a local database, run: `./scripts/init_db.sh`.
+To set up a local database, run: `./scripts/init_db.sh` and `./scripts/init_redis.sh`
 
 #### Building the project
 
-Run `cargo build` to build the project.
+Run `cargo build` to build the project. `indexer.dockerfile` and `api.dockerfile` 
+are useful for generating docker images for use in production or testing.
 
 ### Tests
 
