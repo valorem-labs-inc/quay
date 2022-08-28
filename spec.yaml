@@ -8,9 +8,9 @@ name: quay
 # `fra` stands for Frankfurt (Germany - EU)
 region: nyc
 services:
-  - name: quay
+  - name: api
     # Relative to the repository root
-    dockerfile_path: Dockerfile
+    dockerfile_path: api.dockerfile
     source_dir: .
     github:
       # Depending on when you created the repository,
@@ -60,6 +60,45 @@ services:
       - key: APP_RPC__URI
           scope: RUN_TIME
           value: ${quay.RPC}
+workers:
+  - name: indexer
+      # Relative to the repository root
+      dockerfile_path: indexer.dockerfile
+      source_dir: .
+      github:
+        # Depending on when you created the repository,
+        # the default branch on GitHub might have been named `master`
+        branch: master
+        # Deploy a new version on every commit to `main`!
+        # Continuous Deployment, here we come!
+        deploy_on_push: true
+        # !!! Fill in with your details
+        repo: Alcibiades-Capital/quay
+      # The port the application will be listening on for incoming requests
+      # For production workloads we'd go for at least two!
+      # But let's try to keep the bill under control for now...
+      instance_count: 1
+      instance_size_slug: basic-xxs
+      # All incoming requests should be routed to our app
+      envs:
+        - key: APP_DATABASE__USERNAME
+          scope: RUN_TIME
+          value: ${quay.USERNAME}
+        - key: APP_DATABASE__PASSWORD
+          scope: RUN_TIME
+          value: ${quay.PASSWORD}
+        - key: APP_DATABASE__HOST
+          scope: RUN_TIME
+          value: ${quay.HOSTNAME}
+        - key: APP_DATABASE__PORT
+          scope: RUN_TIME
+          value: ${quay.PORT}
+        - key: APP_DATABASE__DATABASE_NAME
+          scope: RUN_TIME
+          value: ${quay.DATABASE}
+        - key: APP_RPC__URI
+            scope: RUN_TIME
+            value: ${quay.RPC}
 databases:
   # PG = Postgres
   - engine: PG
