@@ -179,5 +179,5 @@ async fn create_and_retrieve_offer_works() {
         .protocol_data
         .clone();
 
-    assert!(first_order == json_body);
+    assert_eq!(first_order, json_body);
 }
