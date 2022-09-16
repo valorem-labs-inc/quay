@@ -13,7 +13,8 @@ use futures::try_join;
 use log::warn;
 use std::str::FromStr;
 use std::sync::Arc;
-use std::thread::sleep;
+use tokio::time::sleep;
+
 use std::time::Duration;
 
 use tracing::{debug, info};
@@ -144,16 +145,6 @@ impl Indexer {
         })
     }
 
-    // The old ens registry was created on block 3327417
-    // at address 0x314159265dd8dbb310642f98f50c066173c1259b
-    // That indexed all registrations until 9380410
-    // Then the new base registrar was deployed at address
-    // 0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85
-    // And at block 9380471 the new eth registrar controller was deployed at
-    // 0x283Af0B28c62C092C9727F1Ee09c02CA627EB7F5
-    // A migration contract was also deployed at block 9406409
-    // at address 0x6109dd117aa5486605fc85e040ab00163a75c662
-
     async fn get_block_events(
         &self,
         block_number: U64,
@@ -260,9 +251,9 @@ pub async fn run(configuration: Settings) -> Result<(), anyhow::Error> {
         let mut indexer = Indexer::new(configuration.clone()).await?;
         // Let's index and throw away errors in case of a db timeout or whatever
         info!("Running indexer");
-        let _result = indexer.run().await?;
+        let _result = indexer.run().await;
         warn!("Indexer stopped/timed out, restarting!");
         // Sleep 1 second in case of a crash
-        sleep(Duration::from_secs(1));
+        sleep(Duration::from_secs(1)).await;
     }
 }
