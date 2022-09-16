@@ -1,4 +1,5 @@
 use crate::structs::{SignedMessage, TypedSession};
+use crate::utils::verify_session;
 use actix_web::cookie::time::OffsetDateTime;
 use actix_web::http::header::ContentType;
 use actix_web::{get, post, web, HttpResponse};
@@ -78,23 +79,5 @@ async fn verify(session: TypedSession, signed_message: web::Json<SignedMessage>)
 #[get("/authenticate")]
 #[tracing::instrument(name = "Checking user EIP-4361 authentication", skip(session))]
 async fn authenticate(session: TypedSession) -> HttpResponse {
-    match session.get_nonce() {
-        Ok(_) => {}
-        // Invalid nonce
-        Err(_) => return HttpResponse::Unauthorized().body("Failed to get nonce"),
-    }
-    match session.get_expiration_time() {
-        Ok(timestamp) => match timestamp {
-            None => return HttpResponse::Unauthorized().body("Failed to get session expiration"),
-            Some(ts) => {
-                if OffsetDateTime::now_utc() > ts {
-                    return HttpResponse::Unauthorized().body("Session expired");
-                }
-            }
-        },
-        // Invalid nonce
-        Err(_) => return HttpResponse::Unauthorized().body("Failed to get session expiration"),
-    }
-
-    HttpResponse::Ok().finish()
+    verify_session(&session).await
 }
