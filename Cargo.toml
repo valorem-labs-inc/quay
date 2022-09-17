@@ -8,8 +8,9 @@ edition = "2021"
 path = "src/lib.rs"
 
 [dependencies]
-actix-web = "4.1.0"
+actix-cors = "0.6.2"
 actix-session = { version = "0.7.1", features = ["redis-rs-tls-session"] }
+actix-web = "4.1.0"
 anyhow = "1.0.60"
 chrono = "0.4"
 # TODO(Config breaks TryFrom between 0.11 -> 0.13, violating semantic versioning)

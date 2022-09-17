@@ -1,3 +1,4 @@
+use actix_cors::Cors;
 use actix_session::storage::RedisSessionStore;
 use actix_session::SessionMiddleware;
 use actix_web::cookie::Key;
@@ -89,8 +90,10 @@ pub fn run(
         provider,
     ));
     let server = HttpServer::new(move || {
+        let cors = Cors::permissive();
         App::new()
             .wrap(TracingLogger::default())
+            .wrap(cors)
             .wrap(SessionMiddleware::new(
                 redis_store.clone(),
                 secret_key.clone(),
