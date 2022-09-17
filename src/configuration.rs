@@ -55,7 +55,7 @@ pub struct ApplicationSettings {
 #[derive(serde::Deserialize, Clone)]
 pub struct RPCSettings {
     pub uri: String,
-    pub chain_id: i32
+    pub chain_id: i32,
 }
 
 #[derive(serde::Deserialize, Clone)]
@@ -69,7 +69,7 @@ pub struct Settings {
     pub application: ApplicationSettings,
     pub rpc: RPCSettings,
     pub redis_url: Secret<String>,
-    pub indexer: IndexerSettings
+    pub indexer: IndexerSettings,
 }
 
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {

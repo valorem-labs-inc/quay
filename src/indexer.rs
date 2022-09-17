@@ -19,6 +19,8 @@ use std::time::Duration;
 
 use tracing::{debug, info};
 
+// TODO(Network id and indexed block should be U64 types, but we need sqlx bindings for those first)
+
 pub async fn init_network(
     pool: &PgPool,
     network_id: &i32,
@@ -213,7 +215,8 @@ impl Indexer {
         // was block # 9380470
         let deploy_block = self.seaport_deploy_block;
         init_network(&self.pool, &self.chain_id, &deploy_block).await?;
-        let mut next_block_to_process = U64::from(get_network(&self.pool, &self.chain_id).await?.indexed_block);
+        let mut next_block_to_process =
+            U64::from(get_network(&self.pool, &self.chain_id).await?.indexed_block);
         let mut block_number: U64;
         info!("Waiting for next block from eth node");
         while block_stream.next().await.is_some() {
@@ -243,7 +246,8 @@ impl Indexer {
                     next_block_to_process += U64::from(1);
                 }
                 try_join_all(tasks).await?;
-                update_network(&self.pool, &self.chain_id, &(end_batch.as_u64() as i64 + 1)).await?;
+                update_network(&self.pool, &self.chain_id, &(end_batch.as_u64() as i64 + 1))
+                    .await?;
             }
         }
         Ok(())
