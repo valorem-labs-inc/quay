@@ -8,3 +8,8 @@ database:
   password: "password"
   database_name: "quay"
 redis_url: "redis://127.0.0.1:6379"
+rpc:
+  uri: "http://127.0.0.1:8545"
+  chain_id: 1
+indexer:
+  seaport_deploy_block: 14946473

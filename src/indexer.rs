@@ -123,6 +123,8 @@ pub async fn update_order_cancellation(
 struct Indexer {
     provider: Arc<Provider<RetryClient<Http>>>,
     seaport: Seaport<Provider<RetryClient<Http>>>,
+    seaport_deploy_block: i64,
+    chain_id: i32,
     pool: Arc<PgPool>,
 }
 
@@ -138,9 +140,15 @@ impl Indexer {
             provider.clone(),
         );
 
+        let seaport_deploy_block = configuration.indexer.seaport_deploy_block;
+
+        let chain_id = configuration.rpc.chain_id;
+
         Ok(Self {
             provider,
             seaport,
+            seaport_deploy_block,
+            chain_id,
             pool,
         })
     }
@@ -203,9 +211,9 @@ impl Indexer {
         let mut block_stream = watcher.watch_blocks().await?;
         // One block before the eth registrar controller was deployed
         // was block # 9380470
-        let deploy_block: i64 = 14946473;
-        init_network(&self.pool, &1, &deploy_block).await?;
-        let mut next_block_to_process = U64::from(get_network(&self.pool, &1).await?.indexed_block);
+        let deploy_block = self.seaport_deploy_block;
+        init_network(&self.pool, &self.chain_id, &deploy_block).await?;
+        let mut next_block_to_process = U64::from(get_network(&self.pool, &self.chain_id).await?.indexed_block);
         let mut block_number: U64;
         info!("Waiting for next block from eth node");
         while block_stream.next().await.is_some() {
@@ -235,7 +243,7 @@ impl Indexer {
                     next_block_to_process += U64::from(1);
                 }
                 try_join_all(tasks).await?;
-                update_network(&self.pool, &1, &(end_batch.as_u64() as i64 + 1)).await?;
+                update_network(&self.pool, &self.chain_id, &(end_batch.as_u64() as i64 + 1)).await?;
             }
         }
         Ok(())
