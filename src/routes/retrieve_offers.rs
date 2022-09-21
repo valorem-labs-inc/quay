@@ -62,6 +62,7 @@ async fn retrieve_offers(
                 O.end_time as "end_time!",
                 O.order_type as "order_type!",
                 O.total_original_consideration_items as "total_original_consideration_items!",
+                O.counter as "counter!",
                 O.salt as "salt!",
                 O.conduit_key as "conduit_key!",
                 O.signature as "signature!",

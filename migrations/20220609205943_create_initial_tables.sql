@@ -34,6 +34,7 @@ CREATE TABLE orders
     order_type INT NOT NULL,
     total_original_consideration_items INT NOT NULL,
     salt TEXT NOT NULL,
+    counter BIGINT NOT NULL,
     conduit_key TEXT NOT NULL,
     signature TEXT NOT NULL,
     cancelled BOOLEAN NOT NULL DEFAULT FALSE,

@@ -1,5 +1,5 @@
-use crate::seaport::{Order, OrderComponents, Seaport};
-use crate::structs::TypedSession;
+use crate::seaport::Seaport;
+use crate::structs::{OrderInput, TypedSession};
 use crate::utils::verify_session;
 use actix_web::{post, web, HttpResponse};
 use anyhow::Error;
@@ -17,7 +17,7 @@ offerer = %offer.parameters.offerer,
 )]
 async fn create_offer(
     session: TypedSession,
-    offer: web::Json<Order>,
+    offer: web::Json<OrderInput>,
     pool: web::Data<PgPool>,
     seaport: web::Data<Seaport<Provider<ethers::providers::Http>>>,
 ) -> HttpResponse {
@@ -38,12 +38,12 @@ async fn create_offer(
 )]
 pub async fn insert_offer(
     pool: &PgPool,
-    new_offer: &Order,
+    new_offer: &OrderInput,
     seaport: &Seaport<Provider<Http>>,
 ) -> Result<(), Error> {
     // Could we generate this without an RPC call?
     let order_hash = seaport
-        .get_order_hash(OrderComponents::from_parameters(seaport, &new_offer.parameters).await)
+        .get_order_hash(new_offer.to_components().await)
         .call()
         .await
         .expect("failed to calculate hash");
@@ -77,8 +77,8 @@ pub async fn insert_offer(
     })?;
     sqlx::query!(
         r#"INSERT INTO orders (hash, offerer, zone, zone_hash, start_time, end_time,
-        order_type, total_original_consideration_items, salt, conduit_key, signature)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) ON CONFLICT (hash) DO NOTHING"#,
+        order_type, total_original_consideration_items, counter, salt, conduit_key, signature)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) ON CONFLICT (hash) DO NOTHING"#,
         order_hash.encode_hex(),
         new_offer.parameters.offerer.encode_hex(),
         new_offer.parameters.zone.encode_hex(),
@@ -90,10 +90,10 @@ pub async fn insert_offer(
             .parameters
             .total_original_consideration_items
             .as_u32() as i32,
+        new_offer.parameters.counter.as_u64() as i64,
         new_offer.parameters.salt.to_string(),
         new_offer.parameters.conduit_key.encode_hex(),
-        // new_offer.parameters.nonce,
-        new_offer.signature.to_string()
+        new_offer.signature.to_string(),
     )
     .execute(&mut tx)
     .await

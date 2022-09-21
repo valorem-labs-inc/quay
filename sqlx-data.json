@@ -19,99 +19,28 @@
     },
     "query": "INSERT INTO considerations (position, \"order\", item_type, token, identifier_or_criteria, start_amount, end_amount, recipient) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (position, \"order\") DO NOTHING"
   },
-  "42dfe496954469f8377bbbbd616b9e41ce7176c4514ec0225569e8be415dbf06": {
+  "5098a399145ec16d743494db524a629d0af97043c2ff9f69ccd2cbe975f266f0": {
     "describe": {
-      "columns": [
-        {
-          "name": "hash!",
-          "ordinal": 0,
-          "type_info": "Text"
-        },
-        {
-          "name": "offerer!",
-          "ordinal": 1,
-          "type_info": "Text"
-        },
-        {
-          "name": "zone!",
-          "ordinal": 2,
-          "type_info": "Text"
-        },
-        {
-          "name": "zone_hash!",
-          "ordinal": 3,
-          "type_info": "Text"
-        },
-        {
-          "name": "start_time!",
-          "ordinal": 4,
-          "type_info": "Int8"
-        },
-        {
-          "name": "end_time!",
-          "ordinal": 5,
-          "type_info": "Int8"
-        },
-        {
-          "name": "order_type!",
-          "ordinal": 6,
-          "type_info": "Int4"
-        },
-        {
-          "name": "total_original_consideration_items!",
-          "ordinal": 7,
-          "type_info": "Int4"
-        },
-        {
-          "name": "salt!",
-          "ordinal": 8,
-          "type_info": "Text"
-        },
-        {
-          "name": "conduit_key!",
-          "ordinal": 9,
-          "type_info": "Text"
-        },
-        {
-          "name": "signature!",
-          "ordinal": 10,
-          "type_info": "Text"
-        },
-        {
-          "name": "considerations!: Vec<DBConsideration>",
-          "ordinal": 11,
-          "type_info": "RecordArray"
-        },
-        {
-          "name": "offers!: Vec<DBOffer>",
-          "ordinal": 12,
-          "type_info": "RecordArray"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        null,
-        null
-      ],
+      "columns": [],
+      "nullable": [],
       "parameters": {
         "Left": [
           "Text",
-          "TextArray",
-          "Int8"
+          "Text",
+          "Text",
+          "Text",
+          "Int8",
+          "Int8",
+          "Int4",
+          "Int4",
+          "Int8",
+          "Text",
+          "Text",
+          "Text"
         ]
       }
     },
-    "query": "\n            SELECT\n                O.hash as \"hash!\",\n                O.offerer as \"offerer!\",\n                O.zone as \"zone!\",\n                O.zone_hash as \"zone_hash!\",\n                O.start_time as \"start_time!\",\n                O.end_time as \"end_time!\",\n                O.order_type as \"order_type!\",\n                O.total_original_consideration_items as \"total_original_consideration_items!\",\n                O.salt as \"salt!\",\n                O.conduit_key as \"conduit_key!\",\n                O.signature as \"signature!\",\n                array_agg(DISTINCT (\n                    OC.position,\n                    OC.item_type,\n                    OC.token,\n                    OC.identifier_or_criteria,\n                    OC.start_amount,\n                    OC.end_amount,\n                    OC.recipient\n                )) AS \"considerations!: Vec<DBConsideration>\",\n                array_agg(DISTINCT (\n                    OOF.position,\n                    OOF.item_type,\n                    OOF.token,\n                    OOF.identifier_or_criteria,\n                    OOF.start_amount,\n                    OOF.end_amount\n                )) AS \"offers!: Vec<DBOffer>\"\n            FROM orders O\n                INNER JOIN considerations OC ON O.hash = OC.order\n                INNER JOIN offers OOF ON O.hash = OOF.order\n            WHERE O.hash IN (\n                SELECT OF.order FROM offers OF\n                    WHERE (OF.token = $1)\n                    AND (OF.identifier_or_criteria = ANY($2::TEXT[]))\n            )\n            GROUP BY O.hash\n            LIMIT $3;\n        "
+    "query": "INSERT INTO orders (hash, offerer, zone, zone_hash, start_time, end_time,\n        order_type, total_original_consideration_items, counter, salt, conduit_key, signature)\n        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) ON CONFLICT (hash) DO NOTHING"
   },
   "52e41630c675d276ce44b4926d6a36772e1bcc42a8aa4107fb97e29df29ebc6b": {
     "describe": {
@@ -138,7 +67,25 @@
     },
     "query": "INSERT INTO networks (network, indexed_block) VALUES ($1, $2) ON CONFLICT DO NOTHING"
   },
-  "8d124332483fc2c35a102aaa8accc44ec59b2cc34365d4a66d0c1d61329bdc8c": {
+  "9dfa60dbd00656de0286dc43ffbfebacda20a58297b71ca84c60c267982d0bad": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Text",
+          "Int4",
+          "Text",
+          "Text",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "INSERT INTO offers (position, \"order\", item_type, token, identifier_or_criteria, start_amount, end_amount) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (position, \"order\") DO NOTHING"
+  },
+  "9fafe48a36b970d2eb6ff83bd65880dd6fbbcb32dfe4fa7991744a1be9f16ee7": {
     "describe": {
       "columns": [
         {
@@ -182,32 +129,38 @@
           "type_info": "Int4"
         },
         {
-          "name": "salt!",
+          "name": "counter!",
           "ordinal": 8,
-          "type_info": "Text"
+          "type_info": "Int8"
         },
         {
-          "name": "conduit_key!",
+          "name": "salt!",
           "ordinal": 9,
           "type_info": "Text"
         },
         {
-          "name": "signature!",
+          "name": "conduit_key!",
           "ordinal": 10,
           "type_info": "Text"
         },
         {
-          "name": "considerations!: Vec<DBConsideration>",
+          "name": "signature!",
           "ordinal": 11,
+          "type_info": "Text"
+        },
+        {
+          "name": "considerations!: Vec<DBConsideration>",
+          "ordinal": 12,
           "type_info": "RecordArray"
         },
         {
           "name": "offers!: Vec<DBOffer>",
-          "ordinal": 12,
+          "ordinal": 13,
           "type_info": "RecordArray"
         }
       ],
       "nullable": [
+        false,
         false,
         false,
         false,
@@ -230,25 +183,7 @@
         ]
       }
     },
-    "query": "\n            SELECT\n                O.hash as \"hash!\",\n                O.offerer as \"offerer!\",\n                O.zone as \"zone!\",\n                O.zone_hash as \"zone_hash!\",\n                O.start_time as \"start_time!\",\n                O.end_time as \"end_time!\",\n                O.order_type as \"order_type!\",\n                O.total_original_consideration_items as \"total_original_consideration_items!\",\n                O.salt as \"salt!\",\n                O.conduit_key as \"conduit_key!\",\n                O.signature as \"signature!\",\n                array_agg(DISTINCT (\n                    OC.position,\n                    OC.item_type,\n                    OC.token,\n                    OC.identifier_or_criteria,\n                    OC.start_amount,\n                    OC.end_amount,\n                    OC.recipient\n                )) AS \"considerations!: Vec<DBConsideration>\",\n                array_agg(DISTINCT (\n                    OOF.position,\n                    OOF.item_type,\n                    OOF.token,\n                    OOF.identifier_or_criteria,\n                    OOF.start_amount,\n                    OOF.end_amount\n                )) AS \"offers!: Vec<DBOffer>\"\n            FROM orders O\n                INNER JOIN considerations OC ON O.hash = OC.order\n                INNER JOIN offers OOF ON O.hash = OOF.order\n            WHERE O.hash IN (\n                SELECT C.order FROM considerations C \n                    WHERE (C.token = $1)\n                    AND (C.identifier_or_criteria = ANY($2::TEXT[]))\n            )\n            GROUP BY O.hash\n            LIMIT $3;\n        "
-  },
-  "9dfa60dbd00656de0286dc43ffbfebacda20a58297b71ca84c60c267982d0bad": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Int4",
-          "Text",
-          "Int4",
-          "Text",
-          "Text",
-          "Text",
-          "Text"
-        ]
-      }
-    },
-    "query": "INSERT INTO offers (position, \"order\", item_type, token, identifier_or_criteria, start_amount, end_amount) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (position, \"order\") DO NOTHING"
+    "query": "\n            SELECT\n                O.hash as \"hash!\",\n                O.offerer as \"offerer!\",\n                O.zone as \"zone!\",\n                O.zone_hash as \"zone_hash!\",\n                O.start_time as \"start_time!\",\n                O.end_time as \"end_time!\",\n                O.order_type as \"order_type!\",\n                O.total_original_consideration_items as \"total_original_consideration_items!\",\n                O.counter as \"counter!\",\n                O.salt as \"salt!\",\n                O.conduit_key as \"conduit_key!\",\n                O.signature as \"signature!\",\n                array_agg(DISTINCT (\n                    OC.position,\n                    OC.item_type,\n                    OC.token,\n                    OC.identifier_or_criteria,\n                    OC.start_amount,\n                    OC.end_amount,\n                    OC.recipient\n                )) AS \"considerations!: Vec<DBConsideration>\",\n                array_agg(DISTINCT (\n                    OOF.position,\n                    OOF.item_type,\n                    OOF.token,\n                    OOF.identifier_or_criteria,\n                    OOF.start_amount,\n                    OOF.end_amount\n                )) AS \"offers!: Vec<DBOffer>\"\n            FROM orders O\n                INNER JOIN considerations OC ON O.hash = OC.order\n                INNER JOIN offers OOF ON O.hash = OOF.order\n            WHERE O.hash IN (\n                SELECT OF.order FROM offers OF\n                    WHERE (OF.token = $1)\n                    AND (OF.identifier_or_criteria = ANY($2::TEXT[]))\n            )\n            GROUP BY O.hash\n            LIMIT $3;\n        "
   },
   "a0d912fb0b10dc88734914b3c16a3213febee0c92279d517ee342414e579354f": {
     "describe": {
@@ -315,26 +250,104 @@
     },
     "query": "SELECT network, indexed_block FROM networks WHERE network = $1"
   },
-  "fb2d17fb7cb55ea5c1b8036cad7f8ffbee81af1f4ac9437dc8439cde7ff5a58d": {
+  "fa47dfaf5042afb6cca933bce92375167a9125f8cd3cecdb792f225cf972a627": {
     "describe": {
-      "columns": [],
-      "nullable": [],
+      "columns": [
+        {
+          "name": "hash!",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "offerer!",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "zone!",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "zone_hash!",
+          "ordinal": 3,
+          "type_info": "Text"
+        },
+        {
+          "name": "start_time!",
+          "ordinal": 4,
+          "type_info": "Int8"
+        },
+        {
+          "name": "end_time!",
+          "ordinal": 5,
+          "type_info": "Int8"
+        },
+        {
+          "name": "order_type!",
+          "ordinal": 6,
+          "type_info": "Int4"
+        },
+        {
+          "name": "total_original_consideration_items!",
+          "ordinal": 7,
+          "type_info": "Int4"
+        },
+        {
+          "name": "counter!",
+          "ordinal": 8,
+          "type_info": "Int8"
+        },
+        {
+          "name": "salt!",
+          "ordinal": 9,
+          "type_info": "Text"
+        },
+        {
+          "name": "conduit_key!",
+          "ordinal": 10,
+          "type_info": "Text"
+        },
+        {
+          "name": "signature!",
+          "ordinal": 11,
+          "type_info": "Text"
+        },
+        {
+          "name": "considerations!: Vec<DBConsideration>",
+          "ordinal": 12,
+          "type_info": "RecordArray"
+        },
+        {
+          "name": "offers!: Vec<DBOffer>",
+          "ordinal": 13,
+          "type_info": "RecordArray"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        null,
+        null
+      ],
       "parameters": {
         "Left": [
           "Text",
-          "Text",
-          "Text",
-          "Text",
-          "Int8",
-          "Int8",
-          "Int4",
-          "Int4",
-          "Text",
-          "Text",
-          "Text"
+          "TextArray",
+          "Int8"
         ]
       }
     },
-    "query": "INSERT INTO orders (hash, offerer, zone, zone_hash, start_time, end_time,\n        order_type, total_original_consideration_items, salt, conduit_key, signature)\n        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) ON CONFLICT (hash) DO NOTHING"
+    "query": "\n            SELECT\n                O.hash as \"hash!\",\n                O.offerer as \"offerer!\",\n                O.zone as \"zone!\",\n                O.zone_hash as \"zone_hash!\",\n                O.start_time as \"start_time!\",\n                O.end_time as \"end_time!\",\n                O.order_type as \"order_type!\",\n                O.total_original_consideration_items as \"total_original_consideration_items!\",\n                O.counter as \"counter!\",\n                O.salt as \"salt!\",\n                O.conduit_key as \"conduit_key!\",\n                O.signature as \"signature!\",\n                array_agg(DISTINCT (\n                    OC.position,\n                    OC.item_type,\n                    OC.token,\n                    OC.identifier_or_criteria,\n                    OC.start_amount,\n                    OC.end_amount,\n                    OC.recipient\n                )) AS \"considerations!: Vec<DBConsideration>\",\n                array_agg(DISTINCT (\n                    OOF.position,\n                    OOF.item_type,\n                    OOF.token,\n                    OOF.identifier_or_criteria,\n                    OOF.start_amount,\n                    OOF.end_amount\n                )) AS \"offers!: Vec<DBOffer>\"\n            FROM orders O\n                INNER JOIN considerations OC ON O.hash = OC.order\n                INNER JOIN offers OOF ON O.hash = OOF.order\n            WHERE O.hash IN (\n                SELECT C.order FROM considerations C \n                    WHERE (C.token = $1)\n                    AND (C.identifier_or_criteria = ANY($2::TEXT[]))\n            )\n            GROUP BY O.hash\n            LIMIT $3;\n        "
   }
 }
