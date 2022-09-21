@@ -54,6 +54,19 @@
     },
     "query": "INSERT INTO addresses (address) VALUES ($1) ON CONFLICT (address) DO NOTHING"
   },
+  "81dd75973c93b8fba03010d58cc5dac0b2c54899859794e2aa33a3ba773a2df0": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Int8"
+        ]
+      }
+    },
+    "query": "UPDATE orders SET cancelled = true WHERE offerer = $1 AND counter < $2"
+  },
   "890116bfb77b847443def9a05697828f7f417074e7ffdeb07ca0762c3f53d01e": {
     "describe": {
       "columns": [],
