@@ -26,7 +26,7 @@ CREATE TABLE networks
 CREATE TABLE orders
 (
     hash TEXT PRIMARY KEY,
-    offerer TEXT REFERENCES addresses(address) NOT NULL ,
+    offerer TEXT REFERENCES addresses(address) NOT NULL,
     zone TEXT REFERENCES addresses(address) NOT NULL,
     zone_hash TEXT NOT NULL,
     start_time BIGINT NOT NULL,
