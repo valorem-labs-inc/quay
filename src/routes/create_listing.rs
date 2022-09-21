@@ -90,11 +90,8 @@ pub async fn insert_listing(
         new_listing.parameters.start_time.as_u64() as i64,
         new_listing.parameters.end_time.as_u64() as i64,
         new_listing.parameters.order_type as i32,
-        new_listing
-            .parameters
-            .total_original_consideration_items
-            .as_u32() as i32,
-        new_listing.parameters.counter.as_u64() as i64,
+        new_listing.parameters.total_original_consideration_items as i32,
+        new_listing.parameters.nonce as i64,
         new_listing.parameters.salt.to_string(),
         new_listing.parameters.conduit_key.encode_hex(),
         new_listing.signature.to_string(),

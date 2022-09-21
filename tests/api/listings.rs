@@ -139,10 +139,10 @@ async fn create_and_retrieve_listing_works() {
                         "recipient": "0x8a90cab2b38dba80c64b7734e58ee1db38b8992e"
                     }
                 ],
-                "totalOriginalConsiderationItems": "2",
+                "totalOriginalConsiderationItems": 2,
                 "salt": "12686911856931635052326433555881236148",
                 "conduitKey": "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000",
-                "counter": "0"
+                "nonce": 0
             },
             "signature": "0x"
         }

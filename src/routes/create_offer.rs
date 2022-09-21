@@ -86,11 +86,8 @@ pub async fn insert_offer(
         new_offer.parameters.start_time.as_u64() as i64,
         new_offer.parameters.end_time.as_u64() as i64,
         new_offer.parameters.order_type as i32,
-        new_offer
-            .parameters
-            .total_original_consideration_items
-            .as_u32() as i32,
-        new_offer.parameters.counter.as_u64() as i64,
+        new_offer.parameters.total_original_consideration_items as i32,
+        new_offer.parameters.nonce as i64,
         new_offer.parameters.salt.to_string(),
         new_offer.parameters.conduit_key.encode_hex(),
         new_offer.signature.to_string(),

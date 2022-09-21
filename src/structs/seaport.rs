@@ -1,4 +1,4 @@
-use ethers::types::H160;
+use ethers::types::{H160, U256};
 use serde::{Deserialize, Deserializer, Serialize};
 
 use crate::seaport::{ConsiderationItem, OfferItem, Order, OrderComponents};
@@ -103,10 +103,10 @@ pub struct OrderInputParameters {
     pub start_time: ethers::core::types::U256,
     pub end_time: ethers::core::types::U256,
     pub zone_hash: ethers::core::types::U256,
-    pub total_original_consideration_items: ethers::core::types::U256,
+    pub total_original_consideration_items: u32,
     pub salt: ethers::core::types::U256,
     pub conduit_key: ethers::core::types::U256,
-    pub counter: ethers::core::types::U256,
+    pub nonce: u64,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -126,7 +126,7 @@ impl OrderInput {
             start_time: self.parameters.start_time,
             end_time: self.parameters.end_time,
             zone_hash: <[u8; 32]>::from(self.parameters.zone_hash),
-            counter: self.parameters.counter,
+            counter: U256::from(self.parameters.nonce),
             salt: self.parameters.salt,
             conduit_key: <[u8; 32]>::from(self.parameters.conduit_key),
         }
