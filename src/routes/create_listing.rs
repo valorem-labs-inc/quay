@@ -1,5 +1,5 @@
-use crate::seaport::{Order, OrderComponents, Seaport};
-use crate::structs::TypedSession;
+use crate::seaport::Seaport;
+use crate::structs::{OrderInput, TypedSession};
 use crate::utils::verify_session;
 use actix_web::{post, web, HttpResponse};
 use anyhow::Error;
@@ -19,7 +19,7 @@ offerer = %listing.parameters.offerer,
 )]
 async fn create_listing(
     session: TypedSession,
-    listing: web::Json<Order>,
+    listing: web::Json<OrderInput>,
     pool: web::Data<PgPool>,
     seaport: web::Data<Seaport<Provider<ethers::providers::Http>>>,
 ) -> HttpResponse {
@@ -41,12 +41,13 @@ async fn create_listing(
 )]
 pub async fn insert_listing(
     pool: &PgPool,
-    new_listing: &Order,
+    new_listing: &OrderInput,
     seaport: &Seaport<Provider<Http>>,
 ) -> Result<(), Error> {
     // Could we generate this without an RPC call?
+
     let order_hash = seaport
-        .get_order_hash(OrderComponents::from_parameters(seaport, &new_listing.parameters).await)
+        .get_order_hash(new_listing.to_components().await)
         .call()
         .await
         .expect("failed to calculate hash");
@@ -80,8 +81,8 @@ pub async fn insert_listing(
     })?;
     sqlx::query!(
         r#"INSERT INTO orders (hash, offerer, zone, zone_hash, start_time, end_time,
-        order_type, total_original_consideration_items, salt, conduit_key, signature)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) ON CONFLICT (hash) DO NOTHING"#,
+        order_type, total_original_consideration_items, counter, salt, conduit_key, signature)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) ON CONFLICT (hash) DO NOTHING"#,
         order_hash.encode_hex(),
         new_listing.parameters.offerer.encode_hex(),
         new_listing.parameters.zone.encode_hex(),
@@ -89,14 +90,11 @@ pub async fn insert_listing(
         new_listing.parameters.start_time.as_u64() as i64,
         new_listing.parameters.end_time.as_u64() as i64,
         new_listing.parameters.order_type as i32,
-        new_listing
-            .parameters
-            .total_original_consideration_items
-            .as_u32() as i32,
+        new_listing.parameters.total_original_consideration_items as i32,
+        new_listing.parameters.nonce as i64,
         new_listing.parameters.salt.to_string(),
         new_listing.parameters.conduit_key.encode_hex(),
-        // new_listing.parameters.nonce,
-        new_listing.signature.to_string()
+        new_listing.signature.to_string(),
     )
     .execute(&mut tx)
     .await

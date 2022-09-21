@@ -1,7 +1,7 @@
-use ethers::types::H160;
+use ethers::types::{H160, U256};
 use serde::{Deserialize, Deserializer, Serialize};
 
-use crate::seaport::Order;
+use crate::seaport::{ConsiderationItem, OfferItem, Order, OrderComponents};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct OrderQuery {
@@ -49,6 +49,7 @@ pub struct DBOrder {
     pub end_time: i64,
     pub order_type: i32,
     pub total_original_consideration_items: i32,
+    pub counter: i64,
     pub salt: String,
     pub conduit_key: String,
     pub signature: String,
@@ -89,4 +90,45 @@ where
         .split(',')
         .map(|item| item.to_owned())
         .collect())
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OrderInputParameters {
+    pub offerer: ethers::core::types::Address,
+    pub zone: ethers::core::types::Address,
+    pub offer: ::std::vec::Vec<OfferItem>,
+    pub consideration: ::std::vec::Vec<ConsiderationItem>,
+    pub order_type: u8,
+    pub start_time: ethers::core::types::U256,
+    pub end_time: ethers::core::types::U256,
+    pub zone_hash: ethers::core::types::U256,
+    pub total_original_consideration_items: u32,
+    pub salt: ethers::core::types::U256,
+    pub conduit_key: ethers::core::types::U256,
+    pub nonce: u64,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OrderInput {
+    pub parameters: OrderInputParameters,
+    pub signature: ethers::core::types::Bytes,
+}
+impl OrderInput {
+    pub async fn to_components(&self) -> OrderComponents {
+        OrderComponents {
+            offerer: self.parameters.offerer,
+            zone: self.parameters.zone,
+            offer: self.parameters.offer.clone(),
+            consideration: self.parameters.consideration.clone(),
+            order_type: self.parameters.order_type,
+            start_time: self.parameters.start_time,
+            end_time: self.parameters.end_time,
+            zone_hash: <[u8; 32]>::from(self.parameters.zone_hash),
+            counter: U256::from(self.parameters.nonce),
+            salt: self.parameters.salt,
+            conduit_key: <[u8; 32]>::from(self.parameters.conduit_key),
+        }
+    }
 }
