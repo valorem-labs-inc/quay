@@ -1,5 +1,7 @@
 use crate::configuration::Settings;
-use crate::seaport::{OrderCancelledFilter, OrderFulfilledFilter, Seaport};
+use crate::seaport::{
+    CounterIncrementedFilter, OrderCancelledFilter, OrderFulfilledFilter, Seaport,
+};
 use crate::startup::get_connection_pool;
 use crate::structs::Network;
 use anyhow::Result;
@@ -101,6 +103,27 @@ pub async fn update_order_fulfillment(
     Ok(())
 }
 
+pub async fn increment_offerer_counter(
+    pool: &PgPool,
+    offerer: Address,
+    counter: U256,
+) -> Result<(), sqlx::Error> {
+    sqlx::query!(
+        r#"UPDATE orders SET cancelled = true WHERE offerer = $1 AND counter < $2"#,
+        offerer.encode_hex(),
+        counter.as_u64() as i64
+    )
+    .execute(pool)
+    .await
+    .map_err(|e| {
+        tracing::error!("Failed to execute query: {:?}", e);
+        e
+        // Using the `?` operator to return early
+        // if the function failed, returning a sqlx::Error
+    })?;
+    Ok(())
+}
+
 pub async fn update_order_cancellation(
     pool: &PgPool,
     order_hash: String,
@@ -159,7 +182,11 @@ impl Indexer {
         &self,
         block_number: U64,
     ) -> Result<
-        (Vec<OrderFulfilledFilter>, Vec<OrderCancelledFilter>),
+        (
+            Vec<OrderFulfilledFilter>,
+            Vec<OrderCancelledFilter>,
+            Vec<CounterIncrementedFilter>,
+        ),
         ContractError<Provider<RetryClient<Http>>>,
     > {
         let block_number = block_number;
@@ -173,7 +200,17 @@ impl Indexer {
             .order_cancelled_filter()
             .from_block(block_number)
             .to_block(block_number);
-        let results = try_join!(fulfilled.query(), cancelled.query(),).map_err(|e| {
+        let counter_updated = self
+            .seaport
+            .counter_incremented_filter()
+            .from_block(block_number)
+            .to_block(block_number);
+        let results = try_join!(
+            fulfilled.query(),
+            cancelled.query(),
+            counter_updated.query()
+        )
+        .map_err(|e| {
             tracing::error!("Failed to get events: {:?}", e);
             e
         })?;
@@ -183,7 +220,7 @@ impl Indexer {
     #[allow(clippy::type_complexity)]
     async fn process_block(&self, block_number: U64) -> Result<(), anyhow::Error> {
         // TODO(Build one sql transaction per block?)
-        let (fulfilled, cancelled) = self.get_block_events(block_number).await?;
+        let (fulfilled, cancelled, counter_updated) = self.get_block_events(block_number).await?;
         let mut cancellations = vec![];
         for cancellation in cancelled {
             let order_hash = cancellation.order_hash.encode_hex();
@@ -200,7 +237,19 @@ impl Indexer {
                 true,
             ));
         }
-        let result = try_join!(try_join_all(cancellations), try_join_all(fulfillments));
+        let mut counter_updates = vec![];
+        for counter_update in counter_updated {
+            counter_updates.push(increment_offerer_counter(
+                &self.pool,
+                counter_update.offerer,
+                counter_update.new_counter,
+            ));
+        }
+        let result = try_join!(
+            try_join_all(cancellations),
+            try_join_all(fulfillments),
+            try_join_all(counter_updates)
+        );
 
         result.unwrap();
         Ok(())
