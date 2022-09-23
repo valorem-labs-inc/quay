@@ -89,7 +89,7 @@ async fn retrieve_listings(
             WHERE O.hash IN (
                 SELECT OF.order FROM offers OF
                     WHERE (OF.token = $1)
-                    AND (OF.identifier_or_criteria = ANY($2::TEXT[]))
+                    AND (OF.identifier_or_criteria = ANY($2::TEXT[]) OR cardinality($2::TEXT[]) = 0)
             )
             GROUP BY O.hash
             LIMIT $3;
