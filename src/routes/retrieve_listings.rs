@@ -17,6 +17,7 @@ limit = %query.limit.unwrap_or(1),
 )
 )]
 async fn listings(query: web::Query<OrderQuery>, pool: web::Data<PgPool>) -> impl Responder {
+    println!("{}", query.offerer);
     match retrieve_listings(
         &pool,
         query.asset_contract_address.encode_hex(),
@@ -31,6 +32,7 @@ async fn listings(query: web::Query<OrderQuery>, pool: web::Data<PgPool>) -> imp
             })
             .collect::<Vec<String>>()
             .as_slice(),
+        query.offerer.encode_hex(),
         query.limit,
     )
     .await
@@ -48,6 +50,7 @@ async fn retrieve_listings(
     pool: &PgPool,
     asset_contract_address: String,
     token_ids: &[String],
+    offerer: String,
     limit: Option<i64>,
 ) -> Result<RetrieveResponse, Error> {
     let db_orders: Vec<DBOrder> = query_as!(
@@ -88,14 +91,16 @@ async fn retrieve_listings(
                 INNER JOIN offers OOF ON O.hash = OOF.order
             WHERE O.hash IN (
                 SELECT OF.order FROM offers OF
-                    WHERE (OF.token = $1)
+                    WHERE (OF.token = $1 OR $1 = '0x0000000000000000000000000000000000000000000000000000000000000000')
                     AND (OF.identifier_or_criteria = ANY($2::TEXT[]) OR cardinality($2::TEXT[]) = 0)
             )
+            AND (O.offerer = $3 OR $3 = '0x0000000000000000000000000000000000000000000000000000000000000000')
             GROUP BY O.hash
-            LIMIT $3;
+            LIMIT $4;
         "#,
         asset_contract_address,
         &token_ids[..],
+        offerer,
         limit.unwrap_or(1)
     )
     .fetch_all(pool)

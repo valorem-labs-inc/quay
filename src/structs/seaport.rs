@@ -5,9 +5,12 @@ use crate::seaport::{ConsiderationItem, OfferItem, Order, OrderComponents};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct OrderQuery {
+    #[serde(default)]
     pub asset_contract_address: H160,
     #[serde(deserialize_with = "token_ids_deserialize", default)]
     pub token_ids: Vec<String>,
+    #[serde(default)]
+    pub offerer: H160,
     pub limit: Option<i64>,
 }
 
