@@ -31,6 +31,7 @@ async fn offers(query: web::Query<OrderQuery>, pool: web::Data<PgPool>) -> impl 
             })
             .collect::<Vec<String>>()
             .as_slice(),
+        query.offerer.encode_hex(),
         query.limit,
     )
     .await
@@ -48,6 +49,7 @@ async fn retrieve_offers(
     pool: &PgPool,
     asset_contract_address: String,
     token_ids: &[String],
+    offerer: String,
     limit: Option<i64>,
 ) -> Result<RetrieveResponse, Error> {
     let db_orders: Vec<DBOrder> = query_as!(
@@ -88,14 +90,16 @@ async fn retrieve_offers(
                 INNER JOIN offers OOF ON O.hash = OOF.order
             WHERE O.hash IN (
                 SELECT C.order FROM considerations C 
-                    WHERE (C.token = $1)
-                    AND (C.identifier_or_criteria = ANY($2::TEXT[]))
+                    WHERE (C.token = $1 OR $1 = '0x0000000000000000000000000000000000000000000000000000000000000000')
+                    AND (C.identifier_or_criteria = ANY($2::TEXT[]) OR cardinality($2::TEXT[]) = 0)
             )
+            AND (O.offerer = $3 OR $3 = '0x0000000000000000000000000000000000000000000000000000000000000000')
             GROUP BY O.hash
-            LIMIT $3;
+            LIMIT $4;
         "#,
         asset_contract_address,
         &token_ids[..],
+        offerer,
         limit.unwrap_or(1)
     )
     .fetch_all(pool)
