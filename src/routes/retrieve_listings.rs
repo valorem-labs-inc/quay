@@ -17,7 +17,6 @@ limit = %query.limit.unwrap_or(1),
 )
 )]
 async fn listings(query: web::Query<OrderQuery>, pool: web::Data<PgPool>) -> impl Responder {
-    println!("{}", query.offerer);
     match retrieve_listings(
         &pool,
         query.asset_contract_address.encode_hex(),
