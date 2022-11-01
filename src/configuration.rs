@@ -64,12 +64,18 @@ pub struct IndexerSettings {
 }
 
 #[derive(serde::Deserialize, Clone)]
+pub struct PaperclipSettings {
+    pub display_url: Option<String>,
+}
+
+#[derive(serde::Deserialize, Clone)]
 pub struct Settings {
     pub database: DatabaseSettings,
     pub application: ApplicationSettings,
     pub rpc: RPCSettings,
     pub redis_url: Secret<String>,
     pub indexer: IndexerSettings,
+    pub paperclip: PaperclipSettings,
 }
 
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {
