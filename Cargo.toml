@@ -23,6 +23,7 @@ serde = { version = "1.0.140", features = ["derive"] }
 secrecy = { version = "0.8", features = ["serde"] }
 serde-aux = "3.1.0"
 serde_json = "1.0.82"
+paperclip = { version = "0.7.1", features = ["v2", "v3", "actix4", "actix-session"] }
 tokio = { version = "1.20.0", features = ["macros", "rt-multi-thread"] }
 tracing = "0.1.35"
 tracing-subscriber = { version = "0.3.15", features = ["registry", "env-filter"] }
@@ -31,7 +32,6 @@ tracing-futures = "0.2.5"
 tracing-log = "0.1.3"
 tracing-actix-web = "0.6.0"
 uuid = { version = "1.1.2", features = ["v4", "serde"] }
-
 
 # TODO(sqlx breaks connect_timeout on minor version upgrade, violating semantic versioning)
 [dependencies.sqlx]
@@ -52,4 +52,3 @@ actix-rt = "2.7.0"
 once_cell = "1.13.0"
 serde_json = "1.0.82"
 reqwest = { version = "0.11.11", default-features = false, features = ["json", "rustls-tls", "cookies", "blocking"] }
-

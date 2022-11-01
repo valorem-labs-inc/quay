@@ -1859,6 +1859,7 @@ checksum = "10a35a97730320ffe8e2d410b5d3b69279b98d2c14bdb8b70ea89ecf7888d41e"
 dependencies = [
  "autocfg",
  "hashbrown 0.12.3",
+ "serde",
 ]
 
 [[package]]
@@ -2002,6 +2003,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "88943dd7ef4a2e5a4bfa2753aaab3013e34ce2533d1996fb18ef591e315e2b3b"
 dependencies = [
  "scopeguard",
+ "serde",
 ]
 
 [[package]]
@@ -2172,6 +2174,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 
 [[package]]
+name = "openapiv3"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b6b4689110fd71f196934fbdf1ad0f0a4b49ea41fbc6f19008c00dba735b544c"
+dependencies = [
+ "indexmap",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "openssl"
 version = "0.10.41"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2214,6 +2227,87 @@ dependencies = [
  "libc",
  "pkg-config",
  "vcpkg",
+]
+
+[[package]]
+name = "paperclip"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f399678683ec199ddca1dd54db957dd158dedb5fc90826eb2a7e6c0800c3a868"
+dependencies = [
+ "anyhow",
+ "indexmap",
+ "itertools",
+ "once_cell",
+ "openapiv3",
+ "paperclip-actix",
+ "paperclip-core",
+ "paperclip-macros",
+ "parking_lot 0.12.1",
+ "semver",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "serde_yaml",
+ "thiserror",
+ "url",
+]
+
+[[package]]
+name = "paperclip-actix"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "29880bc57ef516c272d6fdd215ecaf96375d9a5dbac5412d849b9f9afd0d7298"
+dependencies = [
+ "actix-service",
+ "actix-web",
+ "futures",
+ "once_cell",
+ "openapiv3",
+ "paperclip-core",
+ "paperclip-macros",
+ "parking_lot 0.12.1",
+ "serde_json",
+]
+
+[[package]]
+name = "paperclip-core"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0bee516533b655ba63e41e788b49a2beb1139e1eebafb143e7cb56b8cabb5da1"
+dependencies = [
+ "actix-session",
+ "actix-web",
+ "indexmap",
+ "mime",
+ "once_cell",
+ "openapiv3",
+ "paperclip-macros",
+ "parking_lot 0.12.1",
+ "pin-project",
+ "regex",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "thiserror",
+]
+
+[[package]]
+name = "paperclip-macros"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e89990be67318e3da29c92adb3377e0251a8eee10b4f91ff349cbf2da945e9d1"
+dependencies = [
+ "heck",
+ "http",
+ "lazy_static",
+ "mime",
+ "proc-macro-error",
+ "proc-macro2",
+ "quote",
+ "strum",
+ "strum_macros",
+ "syn",
 ]
 
 [[package]]
@@ -2519,6 +2613,7 @@ dependencies = [
  "futures",
  "log",
  "once_cell",
+ "paperclip",
  "reqwest",
  "secrecy",
  "serde",
@@ -3016,6 +3111,18 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
+]
+
+[[package]]
+name = "serde_yaml"
+version = "0.8.26"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "578a7433b776b56a35785ed5ce9a7e777ac0598aac5a6dd1b4b18a307c7fc71b"
+dependencies = [
+ "indexmap",
+ "ryu",
+ "serde",
+ "yaml-rust",
 ]
 
 [[package]]
