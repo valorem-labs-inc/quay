@@ -3,8 +3,10 @@ use actix_session::storage::RedisSessionStore;
 use actix_session::SessionMiddleware;
 use actix_web::cookie::Key;
 use actix_web::dev::Server;
-use actix_web::{web, App, HttpServer};
+use actix_web::{App, HttpServer};
 use ethers::prelude::*;
+use paperclip::actix::{web, OpenApiExt};
+use paperclip::v2::models::{DefaultApiRaw, Info};
 use secrecy::{ExposeSecret, Secret};
 use sqlx::PgPool;
 use std::net::TcpListener;
@@ -14,7 +16,7 @@ use tracing_actix_web::TracingLogger;
 
 use crate::routes::*;
 
-use crate::configuration::{DatabaseSettings, Settings};
+use crate::configuration::{DatabaseSettings, PaperclipSettings, Settings};
 use crate::seaport::Seaport;
 use sqlx::postgres::PgPoolOptions;
 
@@ -45,6 +47,7 @@ impl Application {
             configuration.application.hmac_secret,
             provider,
             redis_store,
+            configuration.paperclip,
         )?;
 
         // We "save" the bound port in one of `Application`'s fields
@@ -81,6 +84,7 @@ pub fn run(
     hmac_secret: Secret<String>,
     rpc: Provider<Http>,
     redis_store: RedisSessionStore,
+    paperclip_settings: PaperclipSettings,
 ) -> Result<Server, anyhow::Error> {
     let secret_key = Key::from(hmac_secret.expose_secret().as_bytes());
     let db_pool = web::Data::new(db_pool);
@@ -90,7 +94,25 @@ pub fn run(
         provider,
     ));
     let server = HttpServer::new(move || {
+        let mut spec_info = Info {
+            ..Default::default()
+        };
+
+        if paperclip_settings.version.is_some() {
+            spec_info.version = paperclip_settings.clone().version.unwrap();
+        }
+        if paperclip_settings.title.is_some() {
+            spec_info.title = paperclip_settings.clone().title.unwrap();
+        }
+
+        let spec = DefaultApiRaw {
+            base_path: paperclip_settings.clone().display_url,
+            info: spec_info,
+            ..Default::default()
+        };
+
         let cors = Cors::permissive();
+
         App::new()
             .wrap(TracingLogger::default())
             .wrap(cors)
@@ -106,8 +128,12 @@ pub fn run(
             .service(get_nonce)
             .service(verify)
             .service(authenticate)
+            .wrap_api_with_spec(spec)
+            .with_json_spec_at("/spec/v2")
+            .with_json_spec_v3_at("/spec/v3")
             .app_data(db_pool.clone())
             .app_data(seaport.clone())
+            .build()
     })
     .listen(listener)?
     .run();
