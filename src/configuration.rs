@@ -65,7 +65,6 @@ pub struct IndexerSettings {
 
 #[derive(serde::Deserialize, Clone)]
 pub struct PaperclipSettings {
-    pub display_url: Option<String>,
     pub version: Option<String>,
     pub title: Option<String>,
 }
