@@ -5,6 +5,7 @@ pub mod seaport_mod {
     #![allow(dead_code)]
     #![allow(clippy::type_complexity)]
     #![allow(unused_imports)]
+    #![allow(clippy::large_enum_variant)]
     use crate::structs::{DBConsideration as DBConsiderationItem, DBOffer as DBOfferItem, DBOrder};
     use ethers::contract::{
         builders::{ContractCall, Event},
