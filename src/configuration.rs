@@ -1,4 +1,3 @@
-use secrecy::Secret;
 use serde_aux::field_attributes::deserialize_number_from_string;
 use sqlx::postgres::{PgConnectOptions, PgSslMode};
 use sqlx::ConnectOptions;
@@ -73,7 +72,6 @@ pub struct Settings {
     pub database: DatabaseSettings,
     pub application: ApplicationSettings,
     pub rpc: RPCSettings,
-    pub redis_url: Secret<String>,
     pub indexer: IndexerSettings,
     pub paperclip: PaperclipSettings,
 }
