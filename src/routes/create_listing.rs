@@ -1,4 +1,4 @@
-use crate::seaport::Seaport;
+use crate::bindings::seaport::Seaport;
 use crate::structs::OrderInput;
 use actix_web::{post, web, HttpResponse};
 use anyhow::Error;

@@ -10,8 +10,8 @@ use tracing_actix_web::TracingLogger;
 
 use crate::routes::*;
 
+use crate::bindings::seaport::Seaport;
 use crate::configuration::{DatabaseSettings, Settings};
-use crate::seaport::Seaport;
 use sqlx::postgres::PgPoolOptions;
 
 // A new type to hold the newly built server and its port
