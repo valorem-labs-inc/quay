@@ -1,0 +1,20 @@
+syntax = "proto3";
+package quoting;
+
+service Quote {
+    rpc Quote (QuoteRequest) returns (QuoteResponse);
+}
+
+message QuoteRequest {
+  string url = 1;
+
+    enum Vote {
+        UP = 0;
+        DOWN = 1;
+    }
+    Vote vote = 2;
+}
+
+message QuoteResponse {
+    string confirmation = 1;
+}
