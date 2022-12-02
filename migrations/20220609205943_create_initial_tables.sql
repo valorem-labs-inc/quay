@@ -4,19 +4,6 @@ CREATE TABLE addresses
     address TEXT PRIMARY KEY
 );
 
-CREATE TABLE users
-(
-    "user"    TEXT REFERENCES addresses (address) PRIMARY KEY,
-    userName  TEXT,
-    email     TEXT,
-    picture   TEXT,
-    bio       TEXT,
-    twitter   TEXT,
-    instagram TEXT,
-    webLink   TEXT,
-    banner    TEXT
-);
-
 CREATE TABLE networks
 (
     network       INTEGER PRIMARY KEY,
