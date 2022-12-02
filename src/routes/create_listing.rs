@@ -1,6 +1,5 @@
 use crate::seaport::Seaport;
-use crate::structs::{OrderInput, TypedSession};
-use crate::utils::verify_session;
+use crate::structs::OrderInput;
 use actix_web::{post, web, HttpResponse};
 use anyhow::Error;
 use ethers::abi::AbiEncode;
@@ -12,22 +11,16 @@ use sqlx::PgPool;
 #[post("/listings")]
 #[tracing::instrument(
 name = "Adding a new listing",
-skip(session, listing, pool, seaport),
+skip(listing, pool, seaport),
 fields(
 offerer = %listing.parameters.offerer,
 )
 )]
 async fn create_listing(
-    session: TypedSession,
     listing: web::Json<OrderInput>,
     pool: web::Data<PgPool>,
     seaport: web::Data<Seaport<Provider<ethers::providers::Http>>>,
 ) -> HttpResponse {
-    // TODO(Wrap this up into a middleware)
-    let authenticated = verify_session(&session).await;
-    if !authenticated.status().is_success() {
-        return authenticated;
-    }
     // TODO(Pass authenticated user details for verification in order)
     if insert_listing(&pool, &listing, &seaport).await.is_err() {
         return HttpResponse::InternalServerError().finish();

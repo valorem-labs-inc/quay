@@ -1,11 +1,7 @@
 use actix_cors::Cors;
-use actix_session::storage::RedisSessionStore;
-use actix_session::SessionMiddleware;
-use actix_web::cookie::Key;
 use actix_web::dev::Server;
 use actix_web::{web, App, HttpServer};
 use ethers::prelude::*;
-use secrecy::{ExposeSecret, Secret};
 use sqlx::PgPool;
 use std::net::TcpListener;
 use std::str::FromStr;
@@ -28,7 +24,6 @@ impl Application {
     // We have converted the `build` function into a constructor for
     // `Application`.
     pub async fn build(configuration: Settings) -> Result<Self, anyhow::Error> {
-        let redis_store = RedisSessionStore::new(configuration.redis_url.expose_secret()).await?;
         let connection_pool = get_connection_pool(&configuration.database);
 
         let address = format!(
@@ -40,13 +35,7 @@ impl Application {
         let provider: Provider<Http> =
             Provider::new(Http::from_str(configuration.rpc.uri.as_str()).unwrap());
 
-        let server = run(
-            listener,
-            connection_pool,
-            configuration.application.hmac_secret,
-            provider,
-            redis_store,
-        )?;
+        let server = run(listener, connection_pool, provider)?;
 
         // We "save" the bound port in one of `Application`'s fields
         Ok(Self { port, server })
@@ -79,12 +68,8 @@ pub struct RPCUri(pub String);
 pub fn run(
     listener: TcpListener,
     db_pool: PgPool,
-    hmac_secret: Secret<String>,
     rpc: Provider<Http>,
-    redis_store: RedisSessionStore,
 ) -> Result<Server, anyhow::Error> {
-    let secret_key = Key::from(hmac_secret.expose_secret().as_bytes());
-
     let db_pool = web::Data::new(db_pool);
 
     let provider = Arc::new(rpc);
@@ -98,18 +83,11 @@ pub fn run(
         App::new()
             .wrap(TracingLogger::default())
             .wrap(Cors::permissive())
-            .wrap(SessionMiddleware::new(
-                redis_store.clone(),
-                secret_key.clone(),
-            ))
             .service(health_check)
             .service(offers)
             .service(listings)
             .service(create_listing)
             .service(create_offer)
-            .service(get_nonce)
-            .service(verify)
-            .service(authenticate)
             .app_data(db_pool.clone())
             .app_data(seaport.clone())
     })

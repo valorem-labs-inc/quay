@@ -1,13 +1,11 @@
 application:
   port: 8000
-  hmac_secret: "super-long-and-secret-random-key-needed-to-verify-message-integrity"
 database:
   host: "localhost"
   port: 5432
   username: "postgres"
   password: "password"
   database_name: "quay"
-redis_url: "redis://127.0.0.1:6379"
 rpc:
   uri: "http://127.0.0.1:8545"
   chain_id: 1
