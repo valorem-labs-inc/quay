@@ -66,3 +66,6 @@ CREATE TABLE considerations
     end_amount TEXT NOT NULL,
     recipient TEXT NOT NULL
 );
+
+CREATE INDEX IF NOT EXISTS orders_offerer_idx on orders(offerer);
+CREATE INDEX IF NOT EXISTS orders_counter_idx on orders(counter);
