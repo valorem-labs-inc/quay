@@ -1,14 +1,14 @@
 use std::io::stdin;
 
-use quoting::{voting_client::VotingClient, QuoteRequest};
+use quote::{quote_client::QuoteClient, QuoteRequest};
 
-pub mod voting {
-    tonic::include_proto!("quoting");
+pub mod quote {
+    tonic::include_proto!("quote");
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut client = VotingClient::connect("http://[::1]:8080").await?;
+    let mut client = QuoteClient::connect("http://[::1]:8080").await?;
     loop {
         println!("\nPlease vote for a particular url");
         let mut u = String::new();
@@ -23,11 +23,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             'd' => 1,
             _ => break,
         };
-        let request = tonic::Request::new(VotingRequest {
+        let request = tonic::Request::new(QuoteRequest {
             url: String::from(u),
             vote: v,
         });
-        let response = client.vote(request).await?;
+        let response = client.quote(request).await?;
         println!("Got: '{}' from service", response.into_inner().confirmation);
     }
     Ok(())

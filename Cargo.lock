@@ -1368,7 +1368,7 @@ dependencies = [
  "reqwest",
  "semver",
  "serde",
- "serde-aux 4.1.2",
+ "serde-aux",
  "serde_json",
  "thiserror",
  "tracing",
@@ -2885,7 +2885,7 @@ dependencies = [
  "reqwest",
  "secrecy",
  "serde",
- "serde-aux 3.1.0",
+ "serde-aux",
  "serde_json",
  "siwe",
  "sqlx",
@@ -3358,21 +3358,11 @@ dependencies = [
 
 [[package]]
 name = "serde-aux"
-version = "3.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d0a77223b653fa95f3f9864f3eb25b93e4ed170687eb42d85b6b98af21d5e1de"
-dependencies = [
- "chrono",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "serde-aux"
 version = "4.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c599b3fd89a75e0c18d6d2be693ddb12cccaf771db4ff9e39097104808a014c0"
 dependencies = [
+ "chrono",
  "serde",
  "serde_json",
 ]

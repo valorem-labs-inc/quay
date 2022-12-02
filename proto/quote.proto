@@ -1,5 +1,5 @@
 syntax = "proto3";
-package quoting;
+package quote;
 
 service Quote {
     rpc Quote (QuoteRequest) returns (QuoteResponse);
