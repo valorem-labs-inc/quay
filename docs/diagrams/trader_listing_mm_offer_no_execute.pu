@@ -1,0 +1,46 @@
+@startuml
+
+actor Trader
+box Valorem #LightGreen
+participant Quay
+end box
+actor "Market Maker" as MM
+box Valorem #LightBlue
+participant SettlementEngine as SE
+end box
+
+== Case: Trader Lists, Market Maker Offer, Trader doesn't execute ==
+autonumber
+Trader -> SE: on-chain: write
+Trader -> Quay: Create listing\nHTTP POST <url>/listings
+note left #red
+**ask**
+end note
+Trader -> Quay: Request for Quote\nWebsockets: RFQ
+note right
+RFQ JSON structure
+end note
+Quay -> MM: Request for Quote\nWebsockets: RFQ
+note right
+RFQ JSON structure
+end note
+MM -> Quay: Get listings\nHTTP GET <url>/listings/id
+MM -> Quay: HTTP POST: <url>/offers
+note right #red
+**bid**
+end note
+MM -> Quay: Websockets: true
+note right
+Reply JSON structure
+end note
+Quay --> Quay: Search offers
+Quay -> Trader: Offer
+hnote over Trader #lightBlue
+[Start of exercise window]
+end hnote
+hnote over Trader #lightBlue
+[ End of exercise window ]
+end hnote
+Trader -[#red]-> Trader: Offer expiry
+Trader -> SE: on-chain: redeem
+@enduml

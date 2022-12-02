@@ -1,0 +1,25 @@
+@startuml
+
+actor Trader
+box Valorem #LightGreen
+participant Quay
+end box
+actor "Market Maker" as MM
+
+== Case: Market Maker has no offer for Trader ==
+autonumber
+Trader -> Quay: Request for Quote\nWebsockets: RFQ
+note right
+RFQ JSON structure
+end note
+Quay -> MM: Request for Quote\nWebsockets: RFQ
+note right
+RFQ JSON structure
+end note
+MM -[#red]x MM: No offer
+MM -> Quay: Websockets: false
+note right
+Reply JSON structure
+end note
+Quay -> Trader: No offers
+@enduml
