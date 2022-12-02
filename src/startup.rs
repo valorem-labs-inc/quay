@@ -3,12 +3,8 @@ use actix_session::storage::RedisSessionStore;
 use actix_session::SessionMiddleware;
 use actix_web::cookie::Key;
 use actix_web::dev::Server;
-use actix_web::{App, HttpServer};
+use actix_web::{App, HttpServer, web};
 use ethers::prelude::*;
-use paperclip::actix::{web, OpenApiExt};
-use paperclip::v2::models::{
-    Api, DefaultApiRaw, DefaultParameterRaw, DefaultResponseRaw, DefaultSchemaRaw, Info,
-};
 use secrecy::{ExposeSecret, Secret};
 use sqlx::PgPool;
 use std::net::TcpListener;
@@ -43,29 +39,13 @@ impl Application {
         let port = listener.local_addr().unwrap().port();
         let provider: Provider<Http> =
             Provider::new(Http::from_str(configuration.rpc.uri.as_str()).unwrap());
-        let mut spec_info = Info {
-            ..Default::default()
-        };
 
-        if configuration.paperclip.version.is_some() {
-            spec_info.version = configuration.paperclip.version.unwrap();
-        }
-        if configuration.paperclip.title.is_some() {
-            spec_info.title = configuration.paperclip.title.unwrap();
-        }
-
-        let spec: Api<DefaultParameterRaw, DefaultResponseRaw, DefaultSchemaRaw> = DefaultApiRaw {
-            base_path: Option::from(configuration.application.base_url),
-            info: spec_info,
-            ..Default::default()
-        };
         let server = run(
             listener,
             connection_pool,
             configuration.application.hmac_secret,
             provider,
-            redis_store,
-            spec,
+            redis_store
         )?;
 
         // We "save" the bound port in one of `Application`'s fields
@@ -101,8 +81,7 @@ pub fn run(
     db_pool: PgPool,
     hmac_secret: Secret<String>,
     rpc: Provider<Http>,
-    redis_store: RedisSessionStore,
-    spec: Api<DefaultParameterRaw, DefaultResponseRaw, DefaultSchemaRaw>,
+    redis_store: RedisSessionStore
 ) -> Result<Server, anyhow::Error> {
     let secret_key = Key::from(hmac_secret.expose_secret().as_bytes());
 
@@ -131,12 +110,8 @@ pub fn run(
             .service(get_nonce)
             .service(verify)
             .service(authenticate)
-            .wrap_api_with_spec(spec.clone())
-            .with_json_spec_at("/spec/v2")
-            .with_json_spec_v3_at("/spec/v3")
             .app_data(db_pool.clone())
             .app_data(seaport.clone())
-            .build()
     })
     .listen(listener)?
     .run();
