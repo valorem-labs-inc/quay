@@ -8,7 +8,7 @@ use ethers::prelude::*;
 use futures::future::BoxFuture;
 use futures::FutureExt;
 use sqlx::postgres::PgPoolOptions;
-use sqlx::{PgPool};
+use sqlx::PgPool;
 use tower::util::ServiceExt;
 use tower_http::trace::TraceLayer;
 
@@ -38,7 +38,6 @@ pub fn run(
         .serve(app.into_make_service())
         .boxed()
 }
-
 
 pub struct Application {
     server: BoxFuture<'static, Result<(), std::io::Error>>,
