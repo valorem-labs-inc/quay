@@ -1,23 +1,47 @@
+use std::net::TcpListener;
+use std::str::FromStr;
+
 use axum::routing::get;
 use axum::Router;
 use axum::ServiceExt as axumServiceExt;
 use ethers::prelude::*;
-use futures::Future;
-use sqlx::{PgPool, Pool, Postgres};
-use std::net::SocketAddr;
-use std::str::FromStr;
+use futures::future::BoxFuture;
+use futures::FutureExt;
+use sqlx::postgres::PgPoolOptions;
+use sqlx::PgPool;
 use tower::util::ServiceExt;
 use tower_http::trace::TraceLayer;
 
+use crate::configuration::{DatabaseSettings, Settings};
 use crate::routes::*;
 
-use crate::configuration::{DatabaseSettings, Settings};
-use sqlx::postgres::PgPoolOptions;
+pub fn get_connection_pool(configuration: &DatabaseSettings) -> PgPool {
+    PgPoolOptions::new()
+        .connect_timeout(std::time::Duration::from_secs(2))
+        .connect_lazy_with(configuration.with_db())
+}
+
+pub fn run(
+    listener: TcpListener,
+    db_pool: PgPool,
+    rpc: Provider<Http>,
+) -> BoxFuture<'static, Result<(), std::io::Error>> {
+    let app = Router::new()
+        .route("/", get(|| async { "Hello, world!" }))
+        .route("/health_check", get(health_check))
+        .with_state(db_pool)
+        .with_state(rpc)
+        .layer(TraceLayer::new_for_http())
+        .boxed_clone();
+
+    axum_server::from_tcp(listener)
+        .serve(app.into_make_service())
+        .boxed()
+}
 
 pub struct Application {
-    address: SocketAddr,
-    connection_pool: Pool<Postgres>,
-    provider: Provider<Http>,
+    server: BoxFuture<'static, Result<(), std::io::Error>>,
+    port: u16,
 }
 
 impl Application {
@@ -29,46 +53,26 @@ impl Application {
         let provider: Provider<Http> =
             Provider::new(Http::from_str(configuration.rpc.uri.as_str()).unwrap());
 
-        let address = SocketAddr::from_str(&format!(
+        let address = format!(
             "{}:{}",
             configuration.application.host, configuration.application.port
-        ))
-        .unwrap();
+        );
 
-        Ok(Self {
-            address,
-            connection_pool,
-            provider,
-        })
+        let listener = TcpListener::bind(&address)?;
+        let port = listener.local_addr().unwrap().port();
+
+        let server = run(listener, connection_pool, provider);
+
+        Ok(Self { server, port })
     }
 
     // A more expressive name that makes it clear that
     // this function only returns when the application is stopped.
     pub async fn run_until_stopped(self) -> Result<(), std::io::Error> {
-        run(self.address, self.connection_pool, self.provider).await
+        self.server.await
     }
-}
 
-pub fn get_connection_pool(configuration: &DatabaseSettings) -> PgPool {
-    PgPoolOptions::new()
-        .connect_timeout(std::time::Duration::from_secs(2))
-        .connect_lazy_with(configuration.with_db())
-}
-
-pub fn run(
-    address: SocketAddr,
-    db_pool: PgPool,
-    rpc: Provider<Http>,
-) -> impl Future<Output = Result<(), std::io::Error>> {
-    let app = Router::new()
-        .route("/", get(|| async { "Hello, world!" }))
-        .route("/health_check", get(health_check))
-        .with_state(db_pool)
-        .with_state(rpc)
-        .layer(TraceLayer::new_for_http())
-        .boxed_clone();
-
-    let server = axum_server::bind(address).serve(app.into_make_service());
-
-    server
+    pub fn port(&self) -> u16 {
+        self.port
+    }
 }
