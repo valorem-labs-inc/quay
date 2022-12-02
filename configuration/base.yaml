@@ -11,6 +11,3 @@ rpc:
   chain_id: 1
 indexer:
   seaport_deploy_block: 14946473
-paperclip:
-  title: "Quay"
-  version: "0.1.0"

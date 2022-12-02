@@ -4,19 +4,6 @@ CREATE TABLE addresses
     address TEXT PRIMARY KEY
 );
 
-CREATE TABLE users
-(
-    "user"    TEXT REFERENCES addresses (address) PRIMARY KEY,
-    userName  TEXT,
-    email     TEXT,
-    picture   TEXT,
-    bio       TEXT,
-    twitter   TEXT,
-    instagram TEXT,
-    webLink   TEXT,
-    banner    TEXT
-);
-
 CREATE TABLE networks
 (
     network       INTEGER PRIMARY KEY,
@@ -66,3 +53,6 @@ CREATE TABLE considerations
     end_amount TEXT NOT NULL,
     recipient TEXT NOT NULL
 );
+
+CREATE INDEX IF NOT EXISTS orders_offerer_idx on orders(offerer);
+CREATE INDEX IF NOT EXISTS orders_counter_idx on orders(counter);

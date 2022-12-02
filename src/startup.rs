@@ -1,23 +1,23 @@
-use actix_cors::Cors;
-use actix_web::dev::Server;
-use actix_web::{web, App, HttpServer};
+use axum::routing::get;
+use axum::Router;
+use axum::ServiceExt as axumServiceExt;
 use ethers::prelude::*;
-use sqlx::PgPool;
-use std::net::TcpListener;
+use futures::Future;
+use sqlx::{PgPool, Pool, Postgres};
+use std::net::SocketAddr;
 use std::str::FromStr;
-use std::sync::Arc;
-use tracing_actix_web::TracingLogger;
+use tower::util::ServiceExt;
+use tower_http::trace::TraceLayer;
 
 use crate::routes::*;
 
-use crate::bindings::seaport::Seaport;
 use crate::configuration::{DatabaseSettings, Settings};
 use sqlx::postgres::PgPoolOptions;
 
-// A new type to hold the newly built server and its port
 pub struct Application {
-    port: u16,
-    server: Server,
+    address: SocketAddr,
+    connection_pool: Pool<Postgres>,
+    provider: Provider<Http>,
 }
 
 impl Application {
@@ -26,29 +26,26 @@ impl Application {
     pub async fn build(configuration: Settings) -> Result<Self, anyhow::Error> {
         let connection_pool = get_connection_pool(&configuration.database);
 
-        let address = format!(
-            "{}:{}",
-            configuration.application.host, configuration.application.port
-        );
-        let listener = TcpListener::bind(&address)?;
-        let port = listener.local_addr().unwrap().port();
         let provider: Provider<Http> =
             Provider::new(Http::from_str(configuration.rpc.uri.as_str()).unwrap());
 
-        let server = run(listener, connection_pool, provider)?;
+        let address = SocketAddr::from_str(&format!(
+            "{}:{}",
+            configuration.application.host, configuration.application.port
+        ))
+        .unwrap();
 
-        // We "save" the bound port in one of `Application`'s fields
-        Ok(Self { port, server })
-    }
-
-    pub fn port(&self) -> u16 {
-        self.port
+        Ok(Self {
+            address,
+            connection_pool,
+            provider,
+        })
     }
 
     // A more expressive name that makes it clear that
     // this function only returns when the application is stopped.
     pub async fn run_until_stopped(self) -> Result<(), std::io::Error> {
-        self.server.await
+        run(self.address, self.connection_pool, self.provider).await
     }
 }
 
@@ -58,40 +55,20 @@ pub fn get_connection_pool(configuration: &DatabaseSettings) -> PgPool {
         .connect_lazy_with(configuration.with_db())
 }
 
-// Workaround for type based data retrieval
-#[derive(Debug)]
-pub struct ApplicationBaseUrl(pub String);
-
-#[derive(Debug)]
-pub struct RPCUri(pub String);
-
 pub fn run(
-    listener: TcpListener,
+    address: SocketAddr,
     db_pool: PgPool,
     rpc: Provider<Http>,
-) -> Result<Server, anyhow::Error> {
-    let db_pool = web::Data::new(db_pool);
+) -> impl Future<Output = Result<(), std::io::Error>> {
+    let app = Router::new()
+        .route("/", get(|| async { "Hello, world!" }))
+        .route("/health_check", get(health_check))
+        .with_state(db_pool)
+        .with_state(rpc)
+        .layer(TraceLayer::new_for_http())
+        .boxed_clone();
 
-    let provider = Arc::new(rpc);
+    let server = axum_server::bind(address).serve(app.into_make_service());
 
-    let seaport = web::Data::new(Seaport::new(
-        H160::from_str("0x00000000006c3852cbEf3e08E8dF289169EdE581").unwrap(),
-        provider,
-    ));
-
-    let server = HttpServer::new(move || {
-        App::new()
-            .wrap(TracingLogger::default())
-            .wrap(Cors::permissive())
-            .service(health_check)
-            .service(offers)
-            .service(listings)
-            .service(create_listing)
-            .service(create_offer)
-            .app_data(db_pool.clone())
-            .app_data(seaport.clone())
-    })
-    .listen(listener)?
-    .run();
-    Ok(server)
+    server
 }

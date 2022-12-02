@@ -73,7 +73,6 @@ pub struct Settings {
     pub application: ApplicationSettings,
     pub rpc: RPCSettings,
     pub indexer: IndexerSettings,
-    pub paperclip: PaperclipSettings,
 }
 
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {
