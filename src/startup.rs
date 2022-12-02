@@ -3,7 +3,7 @@ use actix_session::storage::RedisSessionStore;
 use actix_session::SessionMiddleware;
 use actix_web::cookie::Key;
 use actix_web::dev::Server;
-use actix_web::{App, HttpServer, web};
+use actix_web::{web, App, HttpServer};
 use ethers::prelude::*;
 use secrecy::{ExposeSecret, Secret};
 use sqlx::PgPool;
@@ -45,7 +45,7 @@ impl Application {
             connection_pool,
             configuration.application.hmac_secret,
             provider,
-            redis_store
+            redis_store,
         )?;
 
         // We "save" the bound port in one of `Application`'s fields
@@ -81,7 +81,7 @@ pub fn run(
     db_pool: PgPool,
     hmac_secret: Secret<String>,
     rpc: Provider<Http>,
-    redis_store: RedisSessionStore
+    redis_store: RedisSessionStore,
 ) -> Result<Server, anyhow::Error> {
     let secret_key = Key::from(hmac_secret.expose_secret().as_bytes());
 
