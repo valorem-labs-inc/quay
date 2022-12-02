@@ -1,7 +1,7 @@
 use ethers::types::{H160, U256};
 use serde::{Deserialize, Deserializer, Serialize};
 
-use crate::seaport::{ConsiderationItem, OfferItem, Order, OrderComponents};
+use crate::bindings::seaport::{ConsiderationItem, OfferItem, Order, OrderComponents};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct OrderQuery {

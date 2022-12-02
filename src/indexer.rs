@@ -1,7 +1,7 @@
-use crate::configuration::Settings;
-use crate::seaport::{
+use crate::bindings::seaport::{
     CounterIncrementedFilter, OrderCancelledFilter, OrderFulfilledFilter, Seaport,
 };
+use crate::configuration::Settings;
 use crate::startup::get_connection_pool;
 use crate::structs::Network;
 use anyhow::Result;
