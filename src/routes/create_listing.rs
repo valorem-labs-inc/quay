@@ -1,5 +1,5 @@
 use crate::seaport::Seaport;
-use crate::structs::{OrderInput};
+use crate::structs::OrderInput;
 use actix_web::{post, web, HttpResponse};
 use anyhow::Error;
 use ethers::abi::AbiEncode;

@@ -1,5 +1,5 @@
 use crate::seaport::Seaport;
-use crate::structs::{OrderInput};
+use crate::structs::OrderInput;
 use actix_web::{post, web, HttpResponse};
 use anyhow::Error;
 use ethers::abi::AbiEncode;
@@ -19,8 +19,8 @@ async fn create_offer(
     pool: web::Data<PgPool>,
     seaport: web::Data<Seaport<Provider<ethers::providers::Http>>>,
 ) -> HttpResponse {
-        // TODO(Pass authenticated user details for verification in order)
-if insert_offer(&pool, &offer, &seaport).await.is_err() {
+    // TODO(Pass authenticated user details for verification in order)
+    if insert_offer(&pool, &offer, &seaport).await.is_err() {
         return HttpResponse::InternalServerError().finish();
     }
     HttpResponse::Ok().finish()

@@ -35,11 +35,7 @@ impl Application {
         let provider: Provider<Http> =
             Provider::new(Http::from_str(configuration.rpc.uri.as_str()).unwrap());
 
-        let server = run(
-            listener,
-            connection_pool,
-            provider,
-        )?;
+        let server = run(listener, connection_pool, provider)?;
 
         // We "save" the bound port in one of `Application`'s fields
         Ok(Self { port, server })
