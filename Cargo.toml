@@ -44,9 +44,3 @@ features = [
     "migrate",
     "offline"
 ]
-
-[dev-dependencies]
-actix-rt = "2.7.0"
-once_cell = "1.13.0"
-serde_json = "1.0.82"
-reqwest = { version = "0.11.11", default-features = false, features = ["json", "rustls-tls", "cookies", "blocking"] }
