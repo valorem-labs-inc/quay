@@ -6,4 +6,3 @@ pub mod seaport;
 pub mod startup;
 pub mod structs;
 pub mod telemetry;
-pub mod utils;
