@@ -3,14 +3,10 @@ use axum::Router;
 use ethers::prelude::*;
 use futures::Future;
 use sqlx::{PgPool, Pool, Postgres};
-use std::net::{SocketAddr, TcpListener};
+use std::net::SocketAddr;
 use std::str::FromStr;
-use std::sync::Arc;
 use tower::BoxError;
 
-use crate::routes::*;
-
-use crate::bindings::seaport::Seaport;
 use crate::configuration::{DatabaseSettings, Settings};
 use sqlx::postgres::PgPoolOptions;
 
