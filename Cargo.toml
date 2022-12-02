@@ -32,6 +32,7 @@ axum-server = "0.4.4"
 tower = { version = "0.4.13", features = ["steer"] }
 hyper = "0.14.23"
 http = "0.2.8"
+tower-http = { version = "0.3.5", features = ["trace"] }
 
 # TODO(sqlx breaks connect_timeout on minor version upgrade, violating semantic versioning)
 [dependencies.sqlx]

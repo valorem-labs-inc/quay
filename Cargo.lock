@@ -2301,6 +2301,7 @@ dependencies = [
  "sqlx",
  "tokio",
  "tower",
+ "tower-http",
  "tracing",
  "tracing-bunyan-formatter",
  "tracing-futures",
@@ -3325,6 +3326,7 @@ dependencies = [
  "tower",
  "tower-layer",
  "tower-service",
+ "tracing",
 ]
 
 [[package]]

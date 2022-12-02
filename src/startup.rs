@@ -6,6 +6,7 @@ use sqlx::{PgPool, Pool, Postgres};
 use std::net::SocketAddr;
 use std::str::FromStr;
 use tower::BoxError;
+use tower_http::{trace::TraceLayer};
 
 use crate::configuration::{DatabaseSettings, Settings};
 use sqlx::postgres::PgPoolOptions;
@@ -28,7 +29,6 @@ impl Application {
 
         let server = run(port, connection_pool, provider)?;
 
-        // We "save" the bound port in one of `Application`'s fields
         Ok(Self {
             port,
             connection_pool,
@@ -69,6 +69,7 @@ pub fn run(
         .route("/", get(|| async { "Hello, world!" }))
         .with_state(db_pool)
         .with_state(rpc)
+        .layer(TraceLayer::new_for_http())
         .map_err(BoxError::from)
         .boxed_clone();
 
