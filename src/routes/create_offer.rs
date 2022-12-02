@@ -1,6 +1,5 @@
 use crate::seaport::Seaport;
-use crate::structs::{OrderInput, TypedSession};
-use crate::utils::verify_session;
+use crate::structs::{OrderInput};
 use actix_web::{post, web, HttpResponse};
 use anyhow::Error;
 use ethers::abi::AbiEncode;
@@ -10,23 +9,18 @@ use sqlx::PgPool;
 #[post("/offers")]
 #[tracing::instrument(
 name = "Adding a new offer",
-skip(session, offer, pool, seaport),
+skip(offer, pool, seaport),
 fields(
 offerer = %offer.parameters.offerer,
 )
 )]
 async fn create_offer(
-    session: TypedSession,
     offer: web::Json<OrderInput>,
     pool: web::Data<PgPool>,
     seaport: web::Data<Seaport<Provider<ethers::providers::Http>>>,
 ) -> HttpResponse {
-    // TODO(Wrap this up into a middleware)
-    let authenticated = verify_session(&session).await;
-    if !authenticated.status().is_success() {
-        return authenticated;
-    }
-    if insert_offer(&pool, &offer, &seaport).await.is_err() {
+        // TODO(Pass authenticated user details for verification in order)
+if insert_offer(&pool, &offer, &seaport).await.is_err() {
         return HttpResponse::InternalServerError().finish();
     }
     HttpResponse::Ok().finish()
