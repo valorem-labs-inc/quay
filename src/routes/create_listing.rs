@@ -1,14 +1,10 @@
 use crate::bindings::seaport::Seaport;
 use crate::structs::OrderInput;
-use actix_web::{post, web, HttpResponse};
 use anyhow::Error;
 use ethers::abi::AbiEncode;
 use ethers::prelude::*;
 use sqlx::PgPool;
 
-// TODO(Implement queries)
-// Cleanroom rewrite of: https://docs.opensea.io/v2.0/reference/create-an-order
-#[post("/listings")]
 #[tracing::instrument(
 name = "Adding a new listing",
 skip(listing, pool, seaport),
@@ -16,7 +12,7 @@ fields(
 offerer = %listing.parameters.offerer,
 )
 )]
-async fn create_listing(
+pub async fn create_listing(
     listing: web::Json<OrderInput>,
     pool: web::Data<PgPool>,
     seaport: web::Data<Seaport<Provider<ethers::providers::Http>>>,

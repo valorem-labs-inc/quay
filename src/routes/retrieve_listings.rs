@@ -1,12 +1,10 @@
 use crate::structs::{DBConsideration, DBOffer, DBOrder, OrderQuery, RetrieveResponse};
-use actix_web::{get, web, HttpResponse, Responder};
 use anyhow::Error;
 use ethers::{abi::AbiEncode, types::U256};
 use sqlx::{query_as, PgPool};
 
 // Cleanroom rewrite of: https://docs.opensea.io/v2.0/reference/retrieve-listings
 
-#[get("/listings")]
 #[tracing::instrument(
 name = "Fetching listings matching the passed tokenIds",
 skip(query, pool),
@@ -16,7 +14,7 @@ token_ids = query.token_ids.join(","),
 limit = %query.limit.unwrap_or(1),
 )
 )]
-async fn listings(query: web::Query<OrderQuery>, pool: web::Data<PgPool>) -> impl Responder {
+pub async fn listings(query: web::Query<OrderQuery>, pool: web::Data<PgPool>) -> impl Responder {
     match retrieve_listings(
         &pool,
         query.asset_contract_address.encode_hex(),

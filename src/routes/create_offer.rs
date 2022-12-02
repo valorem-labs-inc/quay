@@ -1,12 +1,10 @@
 use crate::bindings::seaport::Seaport;
 use crate::structs::OrderInput;
-use actix_web::{post, web, HttpResponse};
 use anyhow::Error;
 use ethers::abi::AbiEncode;
 use ethers::prelude::*;
 use sqlx::PgPool;
 
-#[post("/offers")]
 #[tracing::instrument(
 name = "Adding a new offer",
 skip(offer, pool, seaport),
@@ -14,7 +12,7 @@ fields(
 offerer = %offer.parameters.offerer,
 )
 )]
-async fn create_offer(
+pub async fn create_offer(
     offer: web::Json<OrderInput>,
     pool: web::Data<PgPool>,
     seaport: web::Data<Seaport<Provider<ethers::providers::Http>>>,

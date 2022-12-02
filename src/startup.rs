@@ -8,6 +8,8 @@ use std::str::FromStr;
 use tower::BoxError;
 use tower_http::trace::TraceLayer;
 
+use crate::routes::*;
+
 use crate::configuration::{DatabaseSettings, Settings};
 use sqlx::postgres::PgPoolOptions;
 
@@ -67,6 +69,7 @@ pub fn run(
 ) -> impl Future<Output = Result<(), std::io::Error>> {
     let app = Router::new()
         .route("/", get(|| async { "Hello, world!" }))
+        .route("/health_check", get(health_check))
         .with_state(db_pool)
         .with_state(rpc)
         .layer(TraceLayer::new_for_http())
