@@ -6,7 +6,7 @@ use sqlx::{PgPool, Pool, Postgres};
 use std::net::SocketAddr;
 use std::str::FromStr;
 use tower::BoxError;
-use tower_http::{trace::TraceLayer};
+use tower_http::trace::TraceLayer;
 
 use crate::configuration::{DatabaseSettings, Settings};
 use sqlx::postgres::PgPoolOptions;
