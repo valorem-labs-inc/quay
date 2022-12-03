@@ -4,10 +4,12 @@ on:
   push:
     branches:
       - master
+      - v0.2.0
   pull_request:
     types: [ opened, synchronize, reopened ]
     branches:
       - master
+      - v0.2.0
 
 env:
   CARGO_TERM_COLOR: always
