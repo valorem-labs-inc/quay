@@ -41,10 +41,10 @@ ulid = "1.0.0"
 
 # TODO(sqlx breaks connect_timeout on minor version upgrade, violating semantic versioning)
 [dependencies.sqlx]
-version = "0.5.7"
+version = "0.6.2"
 default-features = false
 features = [
-    "runtime-actix-rustls",
+    "runtime-tokio-rustls",
     "macros",
     "postgres",
     "uuid",
