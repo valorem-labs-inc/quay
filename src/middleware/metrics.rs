@@ -16,7 +16,7 @@ pub async fn track_prometheus_metrics<B>(req: Request<B>, next: Next<B>) -> impl
 
     let response = next.run(req).await;
 
-    let latency = start.elapsed().as_millis();
+    let latency = start.elapsed();
     let status = response.status().as_u16();
 
     metrics.on_request_completed(&path, method.as_str(), status, latency);

@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use prometheus::{HistogramVec, IntCounterVec};
 use prometheus_metric_storage::{MetricStorage, StorageRegistry};
 
@@ -18,12 +20,14 @@ impl ApiMetrics {
         ApiMetrics::instance(registry)
     }
 
-    pub fn on_request_completed(&self, path: &str, method: &str, status: u16, request_time: u128) {
+    pub fn on_request_completed(&self, path: &str, method: &str, status: u16, request_time: Duration) {
+        let rt = (request_time.as_nanos() as f64) / 1_000_000.0;
+
         self.requests_complete
             .with_label_values(&[path, method, &status.to_string()])
             .inc();
         self.requests_duration_miliseconds
             .with_label_values(&[path, method])
-            .observe(request_time as f64);
+            .observe(rt);
     }
 }
