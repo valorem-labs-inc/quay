@@ -1,5 +1,5 @@
-mod registry;
 mod api;
+mod registry;
 
-pub use registry::*;
 pub use api::*;
+pub use registry::*;

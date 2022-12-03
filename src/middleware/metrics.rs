@@ -1,12 +1,7 @@
+use axum::{extract::MatchedPath, http::Request, middleware::Next, response::IntoResponse};
 use std::time::Instant;
-use axum::{
-    extract::MatchedPath,
-    http::Request,
-    middleware::{Next},
-    response::IntoResponse,
-};
 
-use crate::metrics::{ApiMetrics, get_metric_storage_registry};
+use crate::metrics::{get_metric_storage_registry, ApiMetrics};
 
 pub async fn track_prometheus_metrics<B>(req: Request<B>, next: Next<B>) -> impl IntoResponse {
     let metrics = ApiMetrics::inst(get_metric_storage_registry()).unwrap();
