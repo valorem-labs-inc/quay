@@ -1,25 +1,24 @@
+use std::str::FromStr;
+use std::sync::Arc;
+use std::time::Duration;
+
+use anyhow::Result;
+use ethers::abi::AbiEncode;
+use ethers::prelude::*;
+use ethers::providers::Provider;
+use futures::future::try_join_all;
+use futures::try_join;
+use log::warn;
+use sqlx::PgPool;
+use tokio::time::sleep;
+use tracing::{debug, info};
+
 use crate::bindings::seaport::{
     CounterIncrementedFilter, OrderCancelledFilter, OrderFulfilledFilter, Seaport,
 };
 use crate::configuration::Settings;
 use crate::startup::get_connection_pool;
 use crate::structs::Network;
-use anyhow::Result;
-use ethers::abi::AbiEncode;
-use ethers::prelude::*;
-use ethers::providers::Provider;
-use sqlx::PgPool;
-
-use futures::future::try_join_all;
-use futures::try_join;
-use log::warn;
-use std::str::FromStr;
-use std::sync::Arc;
-use tokio::time::sleep;
-
-use std::time::Duration;
-
-use tracing::{debug, info};
 
 // TODO(Network id and indexed block should be U64 types, but we need sqlx bindings for those first)
 
