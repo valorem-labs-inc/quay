@@ -17,7 +17,7 @@ use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 
 use crate::configuration::{DatabaseSettings, Settings};
-use crate::middleware::track_prometheus_metrics;
+use crate::middleware::{track_prometheus_metrics, RequestIdLayer};
 use crate::request_for_quote::request_for_quote_server::RequestForQuoteServer;
 use crate::routes::*;
 use crate::services::*;
@@ -43,6 +43,7 @@ pub fn run(
         .with_state(db_pool)
         .with_state(rpc)
         .layer(TraceLayer::new_for_http())
+        .layer(RequestIdLayer)
         .layer(middleware::from_fn(track_prometheus_metrics))
         .layer(cors)
         .map_err(BoxError::from)
