@@ -1,6 +1,7 @@
 use std::net::TcpListener;
 use std::str::FromStr;
 
+use axum::middleware;
 use axum::{routing::get, Router};
 use axum_server::Handle;
 use ethers::prelude::*;
@@ -15,6 +16,7 @@ use tower::{make::Shared, steer::Steer, BoxError, ServiceExt};
 use tower_http::trace::TraceLayer;
 
 use crate::configuration::{DatabaseSettings, Settings};
+use crate::middleware::track_prometheus_metrics;
 use crate::request_for_quote::request_for_quote_server::RequestForQuoteServer;
 use crate::routes::*;
 use crate::services::*;
@@ -37,6 +39,7 @@ pub fn run(
         .with_state(db_pool)
         .with_state(rpc)
         .layer(TraceLayer::new_for_http())
+        .layer(middleware::from_fn(track_prometheus_metrics))
         .map_err(BoxError::from)
         .boxed_clone();
 
