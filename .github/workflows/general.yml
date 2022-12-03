@@ -55,6 +55,11 @@ jobs:
           toolchain: stable
           override: true
 
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Cache sqlx-cli
         uses: actions/cache@v2
         id: cache-sqlx
@@ -133,6 +138,11 @@ jobs:
           components: clippy
           override: true
 
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Cache sqlx-cli
         uses: actions/cache@v2
         id: cache-sqlx
@@ -193,6 +203,11 @@ jobs:
         with:
           toolchain: stable
           override: true
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Cache sqlx-cli
         uses: actions/cache@v2
