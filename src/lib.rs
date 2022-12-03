@@ -1,6 +1,8 @@
 pub mod bindings;
 pub mod configuration;
 pub mod indexer;
+pub mod metrics;
+pub mod middleware;
 pub mod routes;
 pub mod services;
 pub mod startup;
