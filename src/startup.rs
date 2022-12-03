@@ -15,9 +15,10 @@ use tonic::transport::Server;
 use tower::{make::Shared, steer::Steer, BoxError, ServiceExt};
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
+use tracing::error_span;
 
 use crate::configuration::{DatabaseSettings, Settings};
-use crate::middleware::{track_prometheus_metrics, RequestIdLayer};
+use crate::middleware::{track_prometheus_metrics, RequestId, RequestIdLayer};
 use crate::request_for_quote::request_for_quote_server::RequestForQuoteServer;
 use crate::routes::*;
 use crate::services::*;
@@ -33,6 +34,19 @@ pub fn run(
     db_pool: PgPool,
     rpc: Provider<Http>,
 ) -> BoxFuture<'static, Result<(), std::io::Error>> {
+    let tracing_layer = TraceLayer::new_for_http().make_span_with(|request: &Request<Body>| {
+        let request_id = request
+            .extensions()
+            .get::<RequestId>()
+            .map(ToString::to_string)
+            .unwrap_or_else(|| "unknown".into());
+        error_span!(
+            "request",
+            id = %request_id,
+            method = %request.method(),
+            uri = %request.uri(),
+        )
+    });
     let cors = CorsLayer::very_permissive();
 
     // TODO(Cleanup duplicate state)
@@ -42,7 +56,7 @@ pub fn run(
         .route("/metrics/prometheus", get(metrics_prometheus))
         .with_state(db_pool)
         .with_state(rpc)
-        .layer(TraceLayer::new_for_http())
+        .layer(tracing_layer)
         .layer(RequestIdLayer)
         .layer(middleware::from_fn(track_prometheus_metrics))
         .layer(cors)
