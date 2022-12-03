@@ -3,8 +3,7 @@ use prometheus::Registry;
 use prometheus_metric_storage::StorageRegistry;
 
 static METRICS_REGISTRY: Lazy<StorageRegistry> = Lazy::new(|| {
-    let prometheus_registry =
-        Registry::new_custom(Some("quay".to_string()), None).unwrap();
+    let prometheus_registry = Registry::new_custom(Some("quay".to_string()), None).unwrap();
 
     StorageRegistry::new(prometheus_registry)
 });
