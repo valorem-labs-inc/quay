@@ -36,6 +36,7 @@ pub fn run(
     let http = Router::new()
         .route("/", get(|| async { "Hello, world!" }))
         .route("/health_check", get(health_check))
+        .route("/metrics/prometheus", get(metrics_prometheus))
         .with_state(db_pool)
         .with_state(rpc)
         .layer(TraceLayer::new_for_http())
