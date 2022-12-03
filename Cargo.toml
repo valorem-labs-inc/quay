@@ -32,6 +32,9 @@ tracing-futures = "0.2.5"
 tracing-log = "0.1.3"
 tracing-subscriber = { version = "0.3.15", features = ["registry", "env-filter"] }
 uuid = { version = "1.1.2", features = ["v4", "serde"] }
+once_cell = "1.16.0"
+prometheus = "0.13.3"
+prometheus-metric-storage = "0.5.0"
 
 # TODO(sqlx breaks connect_timeout on minor version upgrade, violating semantic versioning)
 [dependencies.sqlx]

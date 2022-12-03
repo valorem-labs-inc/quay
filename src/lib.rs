@@ -6,6 +6,7 @@ pub mod services;
 pub mod startup;
 pub mod structs;
 pub mod telemetry;
+pub mod metrics;
 
 pub mod request_for_quote {
     #![allow(clippy::all)]
