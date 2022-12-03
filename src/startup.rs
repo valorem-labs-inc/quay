@@ -15,26 +15,26 @@ use tower::{make::Shared, steer::Steer, BoxError, ServiceExt};
 use tower_http::trace::TraceLayer;
 
 use crate::configuration::{DatabaseSettings, Settings};
-use crate::request_for_quote::request_for_quote_server::RequestForQuote;
-use crate::request_for_quote::request_for_quote_server::RequestForQuoteServer;
-use crate::request_for_quote::QuoteRequest;
-use crate::request_for_quote::QuoteResponse;
+use crate::rfq::QuoteResponse;
+use crate::rfq::QuoteRequest;
+use crate::rfq::quote_server::Quote;
+use crate::rfq::quote_server::QuoteServer;
 use crate::routes::*;
 
 // TODO(Move to a different file)
 #[derive(Debug, Default)]
-pub struct MyRFQ {}
+pub struct RFQService {}
 
 #[tonic::async_trait]
-impl RequestForQuote for MyRFQ {
-    async fn request_quote(
+impl Quote for RFQService {
+    async fn quote(
         &self,
         request: tonic::Request<QuoteRequest>,
     ) -> Result<Response<QuoteResponse>, Status> {
         println!("Got a request for quote: {:?}", request);
 
         let reply = QuoteResponse {
-            price: format!("Hello $1 for {}!", request.into_inner().token).into(),
+            confirmation: format!("Hello $1 for {}!", request.into_inner().vote).into(),
         };
 
         Ok(Response::new(reply))
@@ -63,7 +63,7 @@ pub fn run(
         .boxed_clone();
 
     let grpc = Server::builder()
-        .add_service(RequestForQuoteServer::new(MyRFQ::default()))
+        .add_service(QuoteServer::new(RFQService::default()))
         .into_service()
         .map_response(|r| r.map(axum::body::boxed))
         .boxed_clone();

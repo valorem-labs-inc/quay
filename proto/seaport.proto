@@ -1,0 +1,20 @@
+syntax = "proto3";
+package seaport;
+
+// Seaport order json as protobuf message
+message Consideration {
+
+}
+
+message Offer {
+
+}
+
+message Signature {
+
+}
+
+message Order {
+  parameters
+
+}
