@@ -10,36 +10,14 @@ use http::{header::CONTENT_TYPE, Request};
 use hyper::Body;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
-use tonic::{transport::Server, Response, Status};
+use tonic::transport::Server;
 use tower::{make::Shared, steer::Steer, BoxError, ServiceExt};
 use tower_http::trace::TraceLayer;
 
 use crate::configuration::{DatabaseSettings, Settings};
-use crate::rfq::QuoteResponse;
-use crate::rfq::QuoteRequest;
-use crate::rfq::quote_server::Quote;
-use crate::rfq::quote_server::QuoteServer;
+use crate::request_for_quote::request_for_quote_server::RequestForQuoteServer;
 use crate::routes::*;
-
-// TODO(Move to a different file)
-#[derive(Debug, Default)]
-pub struct RFQService {}
-
-#[tonic::async_trait]
-impl Quote for RFQService {
-    async fn quote(
-        &self,
-        request: tonic::Request<QuoteRequest>,
-    ) -> Result<Response<QuoteResponse>, Status> {
-        println!("Got a request for quote: {:?}", request);
-
-        let reply = QuoteResponse {
-            confirmation: format!("Hello $1 for {}!", request.into_inner().vote).into(),
-        };
-
-        Ok(Response::new(reply))
-    }
-}
+use crate::services::*;
 
 pub fn get_connection_pool(configuration: &DatabaseSettings) -> PgPool {
     PgPoolOptions::new()
@@ -79,7 +57,7 @@ pub fn run(
     let handle = Handle::new();
 
     axum_server::from_tcp(listener)
-        .handle(handle.clone())
+        .handle(handle)
         .serve(Shared::new(http_grpc))
         .boxed()
 }

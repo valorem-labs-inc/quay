@@ -5,6 +5,7 @@ pub mod rfq {
     tonic::include_proto!("quote");
 }
 pub mod routes;
+pub mod services;
 pub mod startup;
 pub mod structs;
 pub mod telemetry;
