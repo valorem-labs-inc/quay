@@ -2,7 +2,7 @@ use axum::response::IntoResponse;
 use http::StatusCode;
 use prometheus::Encoder;
 
-use crate::metrics::get_metrics_registry;
+use crate::telemetry::get_metrics_registry;
 
 pub async fn metrics_prometheus() -> impl IntoResponse {
     let prometheus_storage_registry = get_metrics_registry();
