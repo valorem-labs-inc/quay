@@ -1,4 +1,4 @@
-use tonic::{transport::Server, Response, Status};
+use tonic::{Response, Status};
 
 use crate::request_for_quote::request_for_quote_server::RequestForQuote;
 use crate::request_for_quote::QuoteRequest;
@@ -16,7 +16,7 @@ impl RequestForQuote for MyRFQ {
         println!("Got a request for quote: {:?}", request);
 
         let reply = QuoteResponse {
-            price: format!("Hello $1 for {}!", request.into_inner().token).into(),
+            price: format!("Hello $1 for {}!", request.into_inner().token),
         };
 
         Ok(Response::new(reply))

@@ -10,7 +10,7 @@ use http::{header::CONTENT_TYPE, Request};
 use hyper::Body;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
-use tonic::{transport::Server, Response, Status};
+use tonic::{transport::Server};
 use tower::{make::Shared, steer::Steer, BoxError, ServiceExt};
 use tower_http::trace::TraceLayer;
 
@@ -57,7 +57,7 @@ pub fn run(
     let handle = Handle::new();
 
     axum_server::from_tcp(listener)
-        .handle(handle.clone())
+        .handle(handle)
         .serve(Shared::new(http_grpc))
         .boxed()
 }
