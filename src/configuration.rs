@@ -76,23 +76,24 @@ pub struct Settings {
 }
 
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {
-    let mut settings = config::Config::default();
+    let mut settings = config::Config::builder();
     let base_path = std::env::current_dir().expect("Failed to determine the current directory");
     let configuration_directory = base_path.join("configuration");
-    settings.merge(config::File::from(configuration_directory.join("base")).required(true))?;
+    settings = settings
+        .add_source(config::File::from(configuration_directory.join("base")).required(true));
     let environment: Environment = std::env::var("APP_ENVIRONMENT")
         .unwrap_or_else(|_| "local".into())
         .try_into()
         .expect("Failed to parse APP_ENVIRONMENT.");
-    settings.merge(
+    settings = settings.add_source(
         config::File::from(configuration_directory.join(environment.as_str())).required(true),
-    )?;
+    );
 
     // Add in settings from environment variables (with a prefix of APP and '__' as separator)
     // E.g. `APP_APPLICATION__PORT=5001 would set `Settings.application.port`
-    settings.merge(config::Environment::with_prefix("app").separator("__"))?;
+    settings = settings.add_source(config::Environment::with_prefix("app").separator("__"));
 
-    settings.try_into()
+    settings.build()?.try_deserialize::<Settings>()
 }
 
 pub enum Environment {
