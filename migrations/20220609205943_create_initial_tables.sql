@@ -1,7 +1,9 @@
+CREATE EXTENSION IF NOT EXISTS citext;
+
 -- Create addresses table
 CREATE TABLE addresses
 (
-    address TEXT PRIMARY KEY
+    address citext PRIMARY KEY
 );
 
 CREATE TABLE networks
@@ -13,8 +15,8 @@ CREATE TABLE networks
 CREATE TABLE orders
 (
     hash TEXT PRIMARY KEY,
-    offerer TEXT REFERENCES addresses(address) NOT NULL,
-    zone TEXT REFERENCES addresses(address) NOT NULL,
+    offerer citext REFERENCES addresses(address) NOT NULL,
+    zone citext REFERENCES addresses(address) NOT NULL,
     zone_hash TEXT NOT NULL,
     start_time BIGINT NOT NULL,
     end_time BIGINT NOT NULL,
