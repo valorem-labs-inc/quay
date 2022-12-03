@@ -1,19 +1,45 @@
 use std::net::TcpListener;
 use std::str::FromStr;
 
-use axum::routing::get;
-use axum::Router;
-use axum::ServiceExt as axumServiceExt;
+use axum::{routing::get, Router};
+use axum_server::Handle;
 use ethers::prelude::*;
 use futures::future::BoxFuture;
 use futures::FutureExt;
+use http::{header::CONTENT_TYPE, Request};
+use hyper::Body;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
-use tower::util::ServiceExt;
+use tonic::{transport::Server, Response, Status};
+use tower::{make::Shared, steer::Steer, BoxError, ServiceExt};
 use tower_http::trace::TraceLayer;
 
 use crate::configuration::{DatabaseSettings, Settings};
+use crate::request_for_quote::request_for_quote_server::RequestForQuote;
+use crate::request_for_quote::request_for_quote_server::RequestForQuoteServer;
+use crate::request_for_quote::QuoteRequest;
+use crate::request_for_quote::QuoteResponse;
 use crate::routes::*;
+
+// TODO(Move to a different file)
+#[derive(Debug, Default)]
+pub struct MyRFQ {}
+
+#[tonic::async_trait]
+impl RequestForQuote for MyRFQ {
+    async fn request_quote(
+        &self,
+        request: tonic::Request<QuoteRequest>,
+    ) -> Result<Response<QuoteResponse>, Status> {
+        println!("Got a request for quote: {:?}", request);
+
+        let reply = QuoteResponse {
+            price: format!("Hello $1 for {}!", request.into_inner().token).into(),
+        };
+
+        Ok(Response::new(reply))
+    }
+}
 
 pub fn get_connection_pool(configuration: &DatabaseSettings) -> PgPool {
     PgPoolOptions::new()
@@ -26,16 +52,35 @@ pub fn run(
     db_pool: PgPool,
     rpc: Provider<Http>,
 ) -> BoxFuture<'static, Result<(), std::io::Error>> {
-    let app = Router::new()
+    // TODO(Cleanup duplicate state)
+    let http = Router::new()
         .route("/", get(|| async { "Hello, world!" }))
         .route("/health_check", get(health_check))
         .with_state(db_pool)
         .with_state(rpc)
         .layer(TraceLayer::new_for_http())
+        .map_err(BoxError::from)
         .boxed_clone();
 
+    let grpc = Server::builder()
+        .add_service(RequestForQuoteServer::new(MyRFQ::default()))
+        .into_service()
+        .map_response(|r| r.map(axum::body::boxed))
+        .boxed_clone();
+
+    let http_grpc = Steer::new(vec![http, grpc], |req: &Request<Body>, _svcs: &[_]| {
+        if req.headers().get(CONTENT_TYPE).map(|v| v.as_bytes()) != Some(b"application/grpc") {
+            0
+        } else {
+            1
+        }
+    });
+
+    let handle = Handle::new();
+
     axum_server::from_tcp(listener)
-        .serve(app.into_make_service())
+        .handle(handle.clone())
+        .serve(Shared::new(http_grpc))
         .boxed()
 }
 
