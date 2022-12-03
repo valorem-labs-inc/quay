@@ -20,7 +20,13 @@ impl ApiMetrics {
         ApiMetrics::instance(registry)
     }
 
-    pub fn on_request_completed(&self, path: &str, method: &str, status: u16, request_time: Duration) {
+    pub fn on_request_completed(
+        &self,
+        path: &str,
+        method: &str,
+        status: u16,
+        request_time: Duration,
+    ) {
         let rt = (request_time.as_nanos() as f64) / 1_000_000.0;
 
         self.requests_complete
