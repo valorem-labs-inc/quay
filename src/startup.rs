@@ -10,7 +10,7 @@ use http::{header::CONTENT_TYPE, Request};
 use hyper::Body;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
-use tonic::{transport::Server};
+use tonic::transport::Server;
 use tower::{make::Shared, steer::Steer, BoxError, ServiceExt};
 use tower_http::trace::TraceLayer;
 
