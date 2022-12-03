@@ -2338,11 +2338,14 @@ dependencies = [
  "tonic-build",
  "tower",
  "tower-http",
+ "tower-layer",
+ "tower-service",
  "tracing",
  "tracing-bunyan-formatter",
  "tracing-futures",
  "tracing-log",
  "tracing-subscriber",
+ "ulid",
  "uuid 1.2.2",
 ]
 
@@ -3498,6 +3501,15 @@ dependencies = [
  "crunchy",
  "hex",
  "static_assertions",
+]
+
+[[package]]
+name = "ulid"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "13a3aaa69b04e5b66cc27309710a569ea23593612387d67daaf102e73aa974fd"
+dependencies = [
+ "rand",
 ]
 
 [[package]]
