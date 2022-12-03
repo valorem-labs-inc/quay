@@ -13,6 +13,7 @@ use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 use tonic::transport::Server;
 use tower::{make::Shared, steer::Steer, BoxError, ServiceExt};
+use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 
 use crate::configuration::{DatabaseSettings, Settings};
@@ -32,6 +33,8 @@ pub fn run(
     db_pool: PgPool,
     rpc: Provider<Http>,
 ) -> BoxFuture<'static, Result<(), std::io::Error>> {
+    let cors = CorsLayer::very_permissive();
+
     // TODO(Cleanup duplicate state)
     let http = Router::new()
         .route("/", get(|| async { "Hello, world!" }))
@@ -41,6 +44,7 @@ pub fn run(
         .with_state(rpc)
         .layer(TraceLayer::new_for_http())
         .layer(middleware::from_fn(track_prometheus_metrics))
+        .layer(cors)
         .map_err(BoxError::from)
         .boxed_clone();
 
