@@ -41,7 +41,7 @@ CREATE TABLE offers
     start_amount TEXT NOT NULL,
     end_amount TEXT NOT NULL,
 
-    PRIMARY KEY(position, "order")
+    PRIMARY KEY("order", position)
 );
 
 CREATE TABLE considerations
@@ -55,7 +55,7 @@ CREATE TABLE considerations
     end_amount TEXT NOT NULL,
     recipient citext REFERENCES addresses(address) NOT NULL,
 
-    PRIMARY KEY(position, "order")
+    PRIMARY KEY("order", position)
 );
 
 CREATE INDEX IF NOT EXISTS orders_offerer_idx on orders(offerer);
