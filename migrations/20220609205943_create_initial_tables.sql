@@ -35,25 +35,27 @@ CREATE TABLE offers
 (
     position INT NOT NULL,
     "order" TEXT REFERENCES orders(hash) NOT NULL,
-    PRIMARY KEY(position, "order"),
     item_type INT NOT NULL,
-    token TEXT NOT NULL,
+    token citext REFERENCES addresses(address) NOT NULL,
     identifier_or_criteria TEXT NOT NULL,
     start_amount TEXT NOT NULL,
-    end_amount TEXT NOT NULL
+    end_amount TEXT NOT NULL,
+
+    PRIMARY KEY(position, "order")
 );
 
 CREATE TABLE considerations
 (
     position INT NOT NULL,
     "order" TEXT REFERENCES orders(hash) NOT NULL,
-    PRIMARY KEY(position, "order"),
     item_type INT NOT NULL,
-    token TEXT NOT NULL,
+    token citext REFERENCES addresses(address) NOT NULL,
     identifier_or_criteria TEXT NOT NULL,
     start_amount TEXT NOT NULL,
     end_amount TEXT NOT NULL,
-    recipient TEXT NOT NULL
+    recipient citext REFERENCES addresses(address) NOT NULL,
+
+    PRIMARY KEY(position, "order")
 );
 
 CREATE INDEX IF NOT EXISTS orders_offerer_idx on orders(offerer);
