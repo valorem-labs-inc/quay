@@ -109,7 +109,7 @@ pub async fn increment_offerer_counter(
     counter: U256,
 ) -> Result<(), sqlx::Error> {
     sqlx::query!(
-        r#"UPDATE orders SET cancelled = true WHERE offerer = $1 AND counter < $2"#,
+        r#"UPDATE orders SET cancelled = true WHERE offerer = $1::TEXT::citext AND counter < $2"#,
         offerer.encode_hex(),
         counter.as_u64() as i64
     )
