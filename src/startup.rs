@@ -15,31 +15,9 @@ use tower::{make::Shared, steer::Steer, BoxError, ServiceExt};
 use tower_http::trace::TraceLayer;
 
 use crate::configuration::{DatabaseSettings, Settings};
-use crate::request_for_quote::request_for_quote_server::RequestForQuote;
 use crate::request_for_quote::request_for_quote_server::RequestForQuoteServer;
-use crate::request_for_quote::QuoteRequest;
-use crate::request_for_quote::QuoteResponse;
 use crate::routes::*;
-
-// TODO(Move to a different file)
-#[derive(Debug, Default)]
-pub struct MyRFQ {}
-
-#[tonic::async_trait]
-impl RequestForQuote for MyRFQ {
-    async fn request_quote(
-        &self,
-        request: tonic::Request<QuoteRequest>,
-    ) -> Result<Response<QuoteResponse>, Status> {
-        println!("Got a request for quote: {:?}", request);
-
-        let reply = QuoteResponse {
-            price: format!("Hello $1 for {}!", request.into_inner().token).into(),
-        };
-
-        Ok(Response::new(reply))
-    }
-}
+use crate::services::*;
 
 pub fn get_connection_pool(configuration: &DatabaseSettings) -> PgPool {
     PgPoolOptions::new()
