@@ -8,13 +8,13 @@ edition = "2021"
 path = "src/lib.rs"
 
 [dependencies]
-anyhow = "1.0.60"
+anyhow = "1.0.66"
 axum = { version = "0.6.1", features = ["http2"] }
 axum-server = "0.4.4"
 chrono = "0.4"
 config = { version = "0.13.2", default-features = false, features = ["yaml"] }
 ethers = "1.0.2"
-futures = "0.3.16"
+futures = "0.3.25"
 http = "0.2.8"
 hyper = "0.14.23"
 log = "0.4.17"
@@ -22,24 +22,23 @@ once_cell = "1.16.0"
 prometheus = "0.13.3"
 prometheus-metric-storage = "0.5.0"
 prost = "0.11.3"
-serde = { version = "1.0.140", features = ["derive"] }
+serde = { version = "1.0.148", features = ["derive"] }
 serde-aux = "4.1.2"
-serde_json = "1.0.82"
-tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
+serde_json = "1.0.89"
+tokio = { version = "1.22", features = ["macros", "rt-multi-thread"] }
 tonic = "0.8.3"
 tower = { version = "0.4.13", features = ["steer"] }
 tower-http = { version = "0.3.5", features = ["trace", "cors"] }
 tower-layer = "0.3.2"
 tower-service = "0.3.2"
-tracing = "0.1.35"
-tracing-bunyan-formatter = "0.3.3"
+tracing = "0.1.37"
+tracing-bunyan-formatter = "0.3.4"
 tracing-futures = "0.2.5"
 tracing-log = "0.1.3"
-tracing-subscriber = { version = "0.3.15", features = ["registry", "env-filter"] }
-uuid = { version = "1.1.2", features = ["v4", "serde"] }
+tracing-subscriber = { version = "0.3.16", features = ["registry", "env-filter"] }
 ulid = "1.0.0"
+uuid = { version = "1.2.2", features = ["v4", "serde"] }
 
-# TODO(sqlx breaks connect_timeout on minor version upgrade, violating semantic versioning)
 [dependencies.sqlx]
 version = "0.6.2"
 default-features = false
@@ -54,9 +53,8 @@ features = [
 ]
 
 [dev-dependencies]
-actix-rt = "2.7.0"
-once_cell = "1.13.0"
-reqwest = { version = "0.11.11", default-features = false, features = ["json", "rustls-tls", "cookies", "blocking"] }
+once_cell = "1.16.0"
+reqwest = { version = "0.11.13", default-features = false, features = ["json", "rustls-tls", "cookies", "blocking"] }
 
 [build-dependencies]
 tonic-build = "0.8.4"
