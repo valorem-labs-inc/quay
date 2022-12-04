@@ -74,15 +74,15 @@ pub fn run(
         .route("/metrics/prometheus", get(metrics_prometheus))
         .route(
             "/seaport/opensea/listings",
-            post(seaport_opensea_create_listing),
+            post(seaport_opensea_create_listing).get(seaport_opensea_retrieve_listings),
         )
         .route(
             "/seaport/opensea/offers",
-            post(seaport_opensea_create_offer),
+            post(seaport_opensea_create_offer).get(seaport_opensea_retrieve_offers),
         )
         // Legacy endpoints to keep compatibility
-        .route("/listings", post(seaport_opensea_create_listing))
-        .route("/offers", post(seaport_opensea_create_offer))
+        .route("/listings", post(seaport_opensea_create_listing).get(seaport_opensea_retrieve_listings))
+        .route("/offers", post(seaport_opensea_create_offer).get(seaport_opensea_retrieve_offers))
         // Layers/middleware
         .layer(tracing_layer)
         .layer(RequestIdLayer)

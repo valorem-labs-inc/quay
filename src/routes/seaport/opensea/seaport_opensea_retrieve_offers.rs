@@ -12,7 +12,7 @@ use ethers::{abi::AbiEncode, prelude::*};
 use http::StatusCode;
 use sqlx::{query_as, PgPool};
 
-async fn seaport_opensea_retrieve_offers(
+pub async fn seaport_opensea_retrieve_offers(
     State(pool): State<PgPool>,
     query: Query<OrderQuery>,
 ) -> impl IntoResponse {
