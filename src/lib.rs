@@ -2,6 +2,7 @@ pub mod bindings;
 pub mod configuration;
 pub mod indexer;
 pub mod middleware;
+pub mod redis;
 pub mod routes;
 pub mod services;
 pub mod startup;
