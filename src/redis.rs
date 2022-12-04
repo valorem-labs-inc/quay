@@ -5,10 +5,7 @@
 
 use async_trait::async_trait;
 use bb8;
-use redis::{
-    aio::{Connection},
-    ErrorKind,
-};
+use redis::{aio::Connection, ErrorKind};
 use redis::{Client, IntoConnectionInfo, RedisError};
 
 /// A `bb8::ManageConnection` for `redis::Client::get_async_connection`.

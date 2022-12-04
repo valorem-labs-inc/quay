@@ -46,6 +46,7 @@ tracing-log = "0.1.3"
 tracing-subscriber = { version = "0.3.16", features = ["registry", "env-filter"] }
 ulid = "1.0.0"
 uuid = { version = "1.2.2", features = ["v4", "serde"] }
+secrecy = { version = "0.8.0", features = ["serde"] }
 
 [dependencies.sqlx]
 version = "0.6.2"
