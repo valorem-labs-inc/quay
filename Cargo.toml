@@ -10,7 +10,8 @@ path = "src/lib.rs"
 [dependencies]
 anyhow = "1.0.66"
 async-trait = "0.1.59"
-axum = { version = "0.6.1", features = ["http2"] }
+axum = { version = "0.6.1", features = ["http2", "query"] }
+axum-macros = "0.3.0"
 axum-server = "0.4.4"
 axum-sessions = "0.4.1"
 bb8 = "0.8.0"

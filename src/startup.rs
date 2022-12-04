@@ -1,8 +1,12 @@
 use std::net::TcpListener;
 use std::str::FromStr;
+use std::sync::Arc;
 
-use axum::middleware;
-use axum::{routing::get, Router};
+use axum::{
+    middleware,
+    routing::{get, post},
+    Router,
+};
 use axum_server::Handle;
 use ethers::prelude::*;
 use futures::future::BoxFuture;
@@ -22,6 +26,7 @@ use crate::middleware::{track_prometheus_metrics, RequestId, RequestIdLayer};
 use crate::request_for_quote::request_for_quote_server::RequestForQuoteServer;
 use crate::routes::*;
 use crate::services::*;
+use crate::{bindings::Seaport, state::AppState};
 
 pub fn get_connection_pool(configuration: &DatabaseSettings) -> PgPool {
     PgPoolOptions::new()
@@ -34,6 +39,13 @@ pub fn run(
     db_pool: PgPool,
     rpc: Provider<Http>,
 ) -> BoxFuture<'static, Result<(), std::io::Error>> {
+    let provider = Arc::new(rpc.clone());
+
+    let seaport = Seaport::new(
+        H160::from_str("0x00000000006c3852cbEf3e08E8dF289169EdE581").unwrap(),
+        provider,
+    );
+
     let tracing_layer = TraceLayer::new_for_http().make_span_with(|request: &Request<Body>| {
         let request_id = request
             .extensions()
@@ -49,17 +61,41 @@ pub fn run(
     });
     let cors = CorsLayer::very_permissive();
 
+    let state = AppState {
+        db_pool,
+        rpc,
+        seaport,
+    };
+
     // TODO(Cleanup duplicate state)
     let http = Router::new()
         .route("/", get(|| async { "Hello, world!" }))
         .route("/health_check", get(health_check))
         .route("/metrics/prometheus", get(metrics_prometheus))
-        .with_state(db_pool)
-        .with_state(rpc)
+        .route(
+            "/seaport/opensea/listings",
+            post(seaport_opensea_create_listing).get(seaport_opensea_retrieve_listings),
+        )
+        .route(
+            "/seaport/opensea/offers",
+            post(seaport_opensea_create_offer).get(seaport_opensea_retrieve_offers),
+        )
+        // Legacy endpoints to keep compatibility
+        .route(
+            "/listings",
+            post(seaport_opensea_create_listing).get(seaport_opensea_retrieve_listings),
+        )
+        .route(
+            "/offers",
+            post(seaport_opensea_create_offer).get(seaport_opensea_retrieve_offers),
+        )
+        // Layers/middleware
         .layer(tracing_layer)
         .layer(RequestIdLayer)
         .layer(middleware::from_fn(track_prometheus_metrics))
         .layer(cors)
+        // State
+        .with_state(state)
         .map_err(BoxError::from)
         .boxed_clone();
 
