@@ -8,15 +8,15 @@ use http::StatusCode;
 use sqlx::PgPool;
 
 use crate::bindings::seaport::Seaport;
-use crate::state::AppState;
 use crate::structs::OrderInput;
 
 pub async fn seaport_opensea_create_listing(
-    State(state): State<AppState>,
+    State(db_pool): State<PgPool>,
+    State(seaport): State<Seaport<Provider<Http>>>,
     Json(listing): Json<OrderInput>,
 ) -> impl IntoResponse {
     // TODO(Pass authenticated user details for verification in order)
-    if insert_listing(&state.db_pool, &listing, &state.seaport)
+    if insert_listing(&db_pool, &listing, &seaport)
         .await
         .is_err()
     {
