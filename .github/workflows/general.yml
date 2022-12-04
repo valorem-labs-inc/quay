@@ -31,8 +31,8 @@ jobs:
         ports:
           - 6379:6379
     env:
-      SQLX_VERSION: 0.6.2
-      SQLX_FEATURES: postgres,runtime-tokio-rustls
+      SQLX_VERSION: 0.5.7
+      SQLX_FEATURES: postgres
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -124,8 +124,8 @@ jobs:
         ports:
           - 5432:5432
     env:
-      SQLX_VERSION: 0.6.2
-      SQLX_FEATURES: postgres,runtime-tokio-rustls
+      SQLX_VERSION: 0.5.7
+      SQLX_FEATURES: postgres
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -191,8 +191,8 @@ jobs:
         ports:
           - 6379:6379
     env:
-      SQLX_VERSION: 0.6.2
-      SQLX_FEATURES: postgres,runtime-tokio-rustls
+      SQLX_VERSION: 0.5.7
+      SQLX_FEATURES: postgres
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
