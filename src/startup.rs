@@ -68,6 +68,8 @@ pub fn run(
         .route("/", get(|| async { "Hello, world!" }))
         .route("/health_check", get(health_check))
         .route("/metrics/prometheus", get(metrics_prometheus))
+        .route("/listings", post(seaport_opensea_create_listing))
+        .route("/seaport/opensea/listings", post(seaport_opensea_create_listing))
         .layer(tracing_layer)
         .layer(RequestIdLayer)
         .layer(middleware::from_fn(track_prometheus_metrics))
