@@ -1,5 +1,28 @@
 {
   "db": "PostgreSQL",
+  "110158cee6546ae143fbd654a6252ce4885c088b70e2f62392e64cf3b30527c7": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text",
+          "Text",
+          "Text",
+          "Int8",
+          "Int8",
+          "Int4",
+          "Int4",
+          "Int8",
+          "Text",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "INSERT INTO orders (hash, offerer, zone, zone_hash, start_time, end_time,\n        order_type, total_original_consideration_items, counter, salt, conduit_key, signature)\n        VALUES ($1, $2::TEXT::citext, $3::TEXT::citext, $4, $5, $6, $7, $8, $9, $10, $11, $12) ON CONFLICT (hash) DO NOTHING"
+  },
   "180037a9710afd6b9d325c5ffadccb76a077a1187cc8b325da6557b3a7375d7e": {
     "describe": {
       "columns": [],
@@ -12,6 +35,43 @@
       }
     },
     "query": "UPDATE orders SET cancelled = true WHERE offerer = $1::TEXT::citext AND counter < $2"
+  },
+  "2097d020125adc0ce784feaab47de83cc6a76b2210dc532d5d6cb05a980e4d57": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Text",
+          "Int4",
+          "Text",
+          "Text",
+          "Text",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "INSERT INTO considerations (position, \"order\", item_type, token, identifier_or_criteria, start_amount, end_amount, recipient) VALUES ($1, $2, $3, $4::TEXT::citext, $5, $6, $7, $8::TEXT::citext) ON CONFLICT (position, \"order\") DO NOTHING"
+  },
+  "30c8230d2cd9a848d5a9073a6caa689b496eb07492dab5cfa946532f6cf59de7": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Text",
+          "Int4",
+          "Text",
+          "Text",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "INSERT INTO offers (position, \"order\", item_type, token, identifier_or_criteria, start_amount, end_amount) VALUES ($1, $2, $3, $4::TEXT::citext, $5, $6, $7) ON CONFLICT (position, \"order\") DO NOTHING"
   },
   "890116bfb77b847443def9a05697828f7f417074e7ffdeb07ca0762c3f53d01e": {
     "describe": {
@@ -51,6 +111,18 @@
       }
     },
     "query": "UPDATE orders SET cancelled = $2 WHERE hash = $1"
+  },
+  "b9e909aea0ab2d41c107e01ea33be4037da612887da10d9da6eff487e601bdd5": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "INSERT INTO addresses (address) VALUES ($1::TEXT::citext) ON CONFLICT (address) DO NOTHING"
   },
   "df998a15682d6e183e2cdd9b21413b81f8f4c3247536f174440a2ea34adf12ed": {
     "describe": {
