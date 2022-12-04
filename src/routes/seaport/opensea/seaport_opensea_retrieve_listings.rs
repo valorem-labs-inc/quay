@@ -1,4 +1,3 @@
-use crate::structs::{DBConsideration, DBOffer, DBOrder, OrderQuery, RetrieveResponse};
 use anyhow::Error;
 use axum::{
     extract::{Query, State},
@@ -8,6 +7,8 @@ use axum::{
 use ethers::{abi::AbiEncode, prelude::*};
 use http::StatusCode;
 use sqlx::{query_as, PgPool};
+
+use crate::structs::{DBConsideration, DBOffer, DBOrder, OrderQuery, RetrieveResponse};
 
 pub async fn seaport_opensea_retrieve_listings(
     State(pool): State<PgPool>,
