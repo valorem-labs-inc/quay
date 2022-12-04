@@ -1,5 +1,6 @@
 use std::net::TcpListener;
 use std::str::FromStr;
+use std::sync::Arc;
 
 use axum::middleware;
 use axum::{routing::get, Router};
@@ -17,6 +18,7 @@ use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 use tracing::error_span;
 
+use crate::bindings::Seaport;
 use crate::configuration::{DatabaseSettings, Settings};
 use crate::middleware::{track_prometheus_metrics, RequestId, RequestIdLayer};
 use crate::request_for_quote::request_for_quote_server::RequestForQuoteServer;
@@ -34,6 +36,13 @@ pub fn run(
     db_pool: PgPool,
     rpc: Provider<Http>,
 ) -> BoxFuture<'static, Result<(), std::io::Error>> {
+    let provider = Arc::new(rpc);
+
+    let seaport = Seaport::new(
+        H160::from_str("0x00000000006c3852cbEf3e08E8dF289169EdE581").unwrap(),
+        provider,
+    );
+
     let tracing_layer = TraceLayer::new_for_http().make_span_with(|request: &Request<Body>| {
         let request_id = request
             .extensions()
@@ -54,12 +63,13 @@ pub fn run(
         .route("/", get(|| async { "Hello, world!" }))
         .route("/health_check", get(health_check))
         .route("/metrics/prometheus", get(metrics_prometheus))
-        .with_state(db_pool)
-        .with_state(rpc)
         .layer(tracing_layer)
         .layer(RequestIdLayer)
         .layer(middleware::from_fn(track_prometheus_metrics))
         .layer(cors)
+        .with_state(db_pool)
+        .with_state(rpc)
+        .with_state(seaport)
         .map_err(BoxError::from)
         .boxed_clone();
 
