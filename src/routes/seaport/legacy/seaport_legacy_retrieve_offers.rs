@@ -10,7 +10,7 @@ use sqlx::{query_as, PgPool};
 
 use crate::structs::{DBConsideration, DBOffer, DBOrder, OrderQuery, RetrieveResponse};
 
-pub async fn seaport_opensea_retrieve_offers(
+pub async fn seaport_legacy_retrieve_offers(
     State(pool): State<PgPool>,
     query: Query<OrderQuery>,
 ) -> impl IntoResponse {

@@ -73,21 +73,21 @@ pub fn run(
         .route("/health_check", get(health_check))
         .route("/metrics/prometheus", get(metrics_prometheus))
         .route(
-            "/seaport/opensea/listings",
-            post(seaport_opensea_create_listing).get(seaport_opensea_retrieve_listings),
+            "/seaport/legacy/listings",
+            post(seaport_legacy_create_listing).get(seaport_legacy_retrieve_listings),
         )
         .route(
-            "/seaport/opensea/offers",
-            post(seaport_opensea_create_offer).get(seaport_opensea_retrieve_offers),
+            "/seaport/legacy/offers",
+            post(seaport_legacy_create_offer).get(seaport_legacy_retrieve_offers),
         )
         // Legacy endpoints to keep compatibility
         .route(
             "/listings",
-            post(seaport_opensea_create_listing).get(seaport_opensea_retrieve_listings),
+            post(seaport_legacy_create_listing).get(seaport_legacy_retrieve_listings),
         )
         .route(
             "/offers",
-            post(seaport_opensea_create_offer).get(seaport_opensea_retrieve_offers),
+            post(seaport_legacy_create_offer).get(seaport_legacy_retrieve_offers),
         )
         // Layers/middleware
         .layer(tracing_layer)
