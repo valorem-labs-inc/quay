@@ -95,7 +95,8 @@ impl Application {
     // We have converted the `build` function into a constructor for
     // `Application`.
     pub async fn build(configuration: Settings) -> Result<Self, anyhow::Error> {
-        let connection_pool = get_connection_pool(&configuration.database);
+        let db_pool = get_connection_pool(&configuration.database);
+        let redis_pool = bb8::Pool::builder().build(crate::redis::RedisConnectionManager::new(&configuration.redis_uri).unwrap());
 
         let provider: Provider<Http> =
             Provider::new(Http::from_str(configuration.rpc.uri.as_str()).unwrap());
@@ -108,7 +109,7 @@ impl Application {
         let listener = TcpListener::bind(&address)?;
         let port = listener.local_addr().unwrap().port();
 
-        let server = run(listener, connection_pool, provider);
+        let server = run(listener, db_pool, provider);
 
         Ok(Self { server, port })
     }
