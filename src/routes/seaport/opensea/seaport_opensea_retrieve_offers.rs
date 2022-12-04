@@ -10,21 +10,6 @@ use paperclip::actix::{
 };
 use sqlx::{query_as, PgPool};
 
-// Cleanroom rewrite of: https://docs.opensea.io/v2.0/reference/create-an-order
-
-/// Retrieves all offers that match the passes criteria.
-#[api_v2_operation(produces = "application/json")]
-#[get("/offers")]
-#[tracing::instrument(
-    name = "Fetching offers matching the passed tokenIds",
-    skip(query, pool),
-    fields(
-        asset_contract_address = query.asset_contract_address.encode_hex(),
-        token_ids = query.token_ids.join(","),
-        active = %query.active.unwrap_or(false),
-        limit = %query.limit.unwrap_or(1),
-    )
-)]
 async fn seaport_opensea_retrieve_offers(
     query: web::Query<RetrieveOrdersQuery>,
     pool: web::Data<PgPool>,
@@ -54,10 +39,6 @@ async fn seaport_opensea_retrieve_offers(
     }
 }
 
-#[tracing::instrument(
-    name = "Fetching offers matching the passed token_ids from the database",
-    skip(pool, asset_contract_address, token_ids, active, limit)
-)]
 async fn retrieve_offers(
     pool: &PgPool,
     asset_contract_address: String,

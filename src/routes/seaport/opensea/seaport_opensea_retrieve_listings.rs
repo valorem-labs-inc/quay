@@ -10,20 +10,6 @@ use paperclip::actix::{
 };
 use sqlx::{query_as, PgPool};
 
-// Cleanroom rewrite of: https://docs.opensea.io/v2.0/reference/retrieve-listings
-
-/// Retrieves all listings that match the passes criteria.
-#[api_v2_operation(produces = "application/json")]
-#[get("/listings")]
-#[tracing::instrument(
-    name = "Fetching listings matching the passed tokenIds",
-    skip(query, pool),
-    fields(
-        asset_contract_address = query.asset_contract_address.encode_hex(),
-        token_ids = query.token_ids.join(","),
-        limit = %query.limit.unwrap_or(1),
-    )
-)]
 async fn seaport_opensea_retrieve_listings(
     query: web::Query<RetrieveOrdersQuery>,
     pool: web::Data<PgPool>,
@@ -52,10 +38,6 @@ async fn seaport_opensea_retrieve_listings(
     }
 }
 
-#[tracing::instrument(
-    name = "Fetching listings matching the passed token_ids from the database",
-    skip(pool, asset_contract_address, token_ids, active, limit)
-)]
 async fn retrieve_listings(
     pool: &PgPool,
     asset_contract_address: String,
