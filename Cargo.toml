@@ -10,6 +10,7 @@ path = "src/lib.rs"
 [dependencies]
 anyhow = "1.0.60"
 axum = { version = "0.6.1", features = ["http2"] }
+axum-macros = "0.3.0"
 axum-server = "0.4.4"
 chrono = "0.4"
 config = { version = "0.13.2", default-features = false, features = ["yaml"] }
