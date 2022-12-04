@@ -2,8 +2,7 @@ use std::net::TcpListener;
 use std::str::FromStr;
 use std::sync::Arc;
 
-use axum::middleware;
-use axum::{routing::get, Router};
+use axum::{middleware, routing::{get,post}, Router};
 use axum_server::Handle;
 use ethers::prelude::*;
 use futures::future::BoxFuture;
@@ -18,7 +17,7 @@ use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 use tracing::error_span;
 
-use crate::bindings::Seaport;
+use crate::{bindings::Seaport, state::AppState};
 use crate::configuration::{DatabaseSettings, Settings};
 use crate::middleware::{track_prometheus_metrics, RequestId, RequestIdLayer};
 use crate::request_for_quote::request_for_quote_server::RequestForQuoteServer;
@@ -58,6 +57,12 @@ pub fn run(
     });
     let cors = CorsLayer::very_permissive();
 
+    let state = AppState {
+        db_pool: db_pool.clone(),
+        rpc: rpc.clone(),
+        seaport: seaport.clone()
+    };
+
     // TODO(Cleanup duplicate state)
     let http = Router::new()
         .route("/", get(|| async { "Hello, world!" }))
@@ -67,9 +72,7 @@ pub fn run(
         .layer(RequestIdLayer)
         .layer(middleware::from_fn(track_prometheus_metrics))
         .layer(cors)
-        .with_state(db_pool.clone())
-        .with_state(rpc.clone())
-        .with_state(seaport.clone())
+        .with_state(state)
         .map_err(BoxError::from)
         .boxed_clone();
 
