@@ -71,6 +71,10 @@ impl RedisMultiplexedConnectionManager {
 
 #[async_trait]
 impl bb8::ManageConnection for RedisMultiplexedConnectionManager {
+    // TODO(Because this is multiplexed, we could probably just use a single connection)
+    // cloned, using the redis multixplexed connection manager to reconnect on drops
+    // let's see as v0.2.0 develops, if we really need a multiplexed connection pool
+    // or just a single managed multiplexed connection for non blocking operations
     type Connection = MultiplexedConnection;
     type Error = RedisError;
 
