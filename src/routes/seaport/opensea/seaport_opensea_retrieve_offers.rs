@@ -1,6 +1,4 @@
-use crate::{
-    structs::{DBConsideration, DBOffer, DBOrder, OrderQuery, RetrieveResponse},
-};
+use crate::structs::{DBConsideration, DBOffer, DBOrder, OrderQuery, RetrieveResponse};
 use anyhow::Error;
 use axum::{
     extract::{Query, State},
