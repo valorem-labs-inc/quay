@@ -1,5 +1,3 @@
-use crate::bindings::seaport::Seaport;
-use crate::structs::OrderInput;
 use anyhow::Error;
 use axum::extract::State;
 use axum::response::IntoResponse;
@@ -8,6 +6,9 @@ use ethers::abi::AbiEncode;
 use ethers::prelude::*;
 use http::StatusCode;
 use sqlx::PgPool;
+
+use crate::bindings::seaport::Seaport;
+use crate::structs::OrderInput;
 
 async fn create_listing(
     Json(listing): Json<OrderInput>,
