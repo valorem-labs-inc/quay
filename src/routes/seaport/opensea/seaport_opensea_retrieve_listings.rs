@@ -54,8 +54,8 @@ async fn retrieve_listings(
         r#"
             SELECT
                 O.hash as "hash!",
-                O.offerer as "offerer!",
-                O.zone as "zone!",
+                O.offerer::TEXT as "offerer!",
+                O.zone::TEXT as "zone!",
                 O.zone_hash as "zone_hash!",
                 O.start_time as "start_time!",
                 O.end_time as "end_time!",
@@ -68,16 +68,16 @@ async fn retrieve_listings(
                 array_agg(DISTINCT (
                     OC.position,
                     OC.item_type,
-                    OC.token,
+                    OC.token::TEXT,
                     OC.identifier_or_criteria,
                     OC.start_amount,
                     OC.end_amount,
-                    OC.recipient
+                    OC.recipient::TEXT
                 )) AS "considerations!: Vec<DBConsideration>",
                 array_agg(DISTINCT (
                     OOF.position,
                     OOF.item_type,
-                    OOF.token,
+                    OOF.token::TEXT,
                     OOF.identifier_or_criteria,
                     OOF.start_amount,
                     OOF.end_amount
@@ -87,10 +87,10 @@ async fn retrieve_listings(
                 INNER JOIN offers OOF ON O.hash = OOF.order
             WHERE O.hash IN (
                 SELECT OF.order FROM offers OF
-                    WHERE (OF.token = $1 OR $1 = '0x0000000000000000000000000000000000000000000000000000000000000000')
+                    WHERE (OF.token = $1::TEXT::citext OR $1::TEXT::citext = '0x0000000000000000000000000000000000000000000000000000000000000000')
                     AND (OF.identifier_or_criteria = ANY($2::TEXT[]) OR cardinality($2::TEXT[]) = 0)
             )
-            AND (O.offerer = $3 OR $3 = '0x0000000000000000000000000000000000000000000000000000000000000000')
+            AND (O.offerer = $3::TEXT::citext OR $3::TEXT::citext = '0x0000000000000000000000000000000000000000000000000000000000000000')
             GROUP BY O.hash
             LIMIT $4;
         "#,
