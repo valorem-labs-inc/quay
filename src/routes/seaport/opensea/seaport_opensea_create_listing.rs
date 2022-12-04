@@ -44,7 +44,11 @@ pub async fn insert_listing(
         e
     })?;
     sqlx::query!(
-        r#"INSERT INTO addresses (address) VALUES ($1::TEXT::citext) ON CONFLICT (address) DO NOTHING"#,
+        r#"
+            INSERT INTO addresses (address)
+                VALUES ($1::TEXT::citext)
+                ON CONFLICT (address) DO NOTHING;
+        "#,
         new_listing.parameters.offerer.encode_hex()
     )
     .execute(&mut tx)
@@ -54,7 +58,11 @@ pub async fn insert_listing(
         e
     })?;
     sqlx::query!(
-        r#"INSERT INTO addresses (address) VALUES ($1::TEXT::citext) ON CONFLICT (address) DO NOTHING"#,
+        r#"
+            INSERT INTO addresses (address)
+                VALUES ($1::TEXT::citext)
+                ON CONFLICT (address) DO NOTHING;
+        "#,
         new_listing.parameters.zone.encode_hex()
     )
     .execute(&mut tx)
@@ -64,9 +72,24 @@ pub async fn insert_listing(
         e
     })?;
     sqlx::query!(
-        r#"INSERT INTO orders (hash, offerer, zone, zone_hash, start_time, end_time,
-        order_type, total_original_consideration_items, counter, salt, conduit_key, signature)
-        VALUES ($1, $2::TEXT::citext, $3::TEXT::citext, $4, $5, $6, $7, $8, $9, $10, $11, $12) ON CONFLICT (hash) DO NOTHING"#,
+        r#"
+            INSERT INTO orders (
+                hash,
+                offerer,
+                zone,
+                zone_hash,
+                start_time,
+                end_time,
+                order_type,
+                total_original_consideration_items,
+                counter,
+                salt,
+                conduit_key,
+                signature
+            )
+                VALUES ($1, $2::TEXT::citext, $3::TEXT::citext, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+                ON CONFLICT (hash) DO NOTHING;
+        "#,
         order_hash.encode_hex(),
         new_listing.parameters.offerer.encode_hex(),
         new_listing.parameters.zone.encode_hex(),
@@ -89,7 +112,11 @@ pub async fn insert_listing(
     let mut position = 0;
     for offer in &new_listing.parameters.offer {
         sqlx::query!(
-            r#"INSERT INTO addresses (address) VALUES ($1::TEXT::citext) ON CONFLICT (address) DO NOTHING"#,
+            r#"
+                INSERT INTO addresses (address)
+                    VALUES ($1::TEXT::citext)
+                    ON CONFLICT (address) DO NOTHING;
+            "#,
             offer.token.encode_hex()
         )
         .execute(&mut tx)
@@ -101,7 +128,19 @@ pub async fn insert_listing(
 
         // Insert offer item
         sqlx::query!(
-            r#"INSERT INTO offers (position, "order", item_type, token, identifier_or_criteria, start_amount, end_amount) VALUES ($1, $2, $3, $4::TEXT::citext, $5, $6, $7) ON CONFLICT (position, "order") DO NOTHING"#,
+            r#"
+                INSERT INTO offers (
+                    position,
+                    "order",
+                    item_type,
+                    token,
+                    identifier_or_criteria,
+                    start_amount,
+                    end_amount
+                )
+                    VALUES ($1, $2, $3, $4::TEXT::citext, $5, $6, $7)
+                    ON CONFLICT ("order", position) DO NOTHING;
+            "#,
             position,
             order_hash.encode_hex(),
             offer.item_type as i32,
@@ -121,7 +160,11 @@ pub async fn insert_listing(
     position = 0;
     for consideration in &new_listing.parameters.consideration {
         sqlx::query!(
-            r#"INSERT INTO addresses (address) VALUES ($1::TEXT::citext) ON CONFLICT (address) DO NOTHING"#,
+            r#"
+                INSERT INTO addresses (address)
+                    VALUES ($1::TEXT::citext)
+                    ON CONFLICT (address) DO NOTHING;
+            "#,
             consideration.token.encode_hex()
         )
         .execute(&mut tx)
@@ -131,7 +174,11 @@ pub async fn insert_listing(
             e
         })?;
         sqlx::query!(
-            r#"INSERT INTO addresses (address) VALUES ($1::TEXT::citext) ON CONFLICT (address) DO NOTHING"#,
+            r#"
+                INSERT INTO addresses (address)
+                    VALUES ($1::TEXT::citext)
+                    ON CONFLICT (address) DO NOTHING;
+            "#,
             consideration.recipient.encode_hex()
         )
         .execute(&mut tx)
@@ -142,7 +189,20 @@ pub async fn insert_listing(
         })?;
 
         sqlx::query!(
-            r#"INSERT INTO considerations (position, "order", item_type, token, identifier_or_criteria, start_amount, end_amount, recipient) VALUES ($1, $2, $3, $4::TEXT::citext, $5, $6, $7, $8::TEXT::citext) ON CONFLICT (position, "order") DO NOTHING"#,
+            r#"
+                INSERT INTO considerations (
+                    position,
+                    "order",
+                    item_type,
+                    token,
+                    identifier_or_criteria,
+                    start_amount,
+                    end_amount,
+                    recipient
+                )
+                    VALUES ($1, $2, $3, $4::TEXT::citext, $5, $6, $7, $8::TEXT::citext)
+                    ON CONFLICT ("order", position) DO NOTHING;
+            "#,
             position,
             order_hash.encode_hex(),
             consideration.item_type as i32,
