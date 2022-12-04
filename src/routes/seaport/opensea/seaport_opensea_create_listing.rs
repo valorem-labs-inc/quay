@@ -1,19 +1,25 @@
 use anyhow::Error;
-use axum::{extract::{State, Json}, response::IntoResponse};
-use ethers::{prelude::*, abi::AbiEncode};
+use axum::{
+    extract::{Json, State},
+    response::IntoResponse,
+};
+use ethers::{abi::AbiEncode, prelude::*};
 use http::StatusCode;
 use sqlx::PgPool;
 
 use crate::bindings::seaport::Seaport;
-use crate::structs::OrderInput;
 use crate::state::AppState;
+use crate::structs::OrderInput;
 
 pub async fn seaport_opensea_create_listing(
     State(state): State<AppState>,
     Json(listing): Json<OrderInput>,
 ) -> impl IntoResponse {
     // TODO(Pass authenticated user details for verification in order)
-    if insert_listing(&state.db_pool, &listing, &state.seaport).await.is_err() {
+    if insert_listing(&state.db_pool, &listing, &state.seaport)
+        .await
+        .is_err()
+    {
         return (StatusCode::INTERNAL_SERVER_ERROR).into_response();
     }
 

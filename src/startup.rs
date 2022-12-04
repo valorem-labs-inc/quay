@@ -2,7 +2,11 @@ use std::net::TcpListener;
 use std::str::FromStr;
 use std::sync::Arc;
 
-use axum::{middleware, routing::{get,post}, Router};
+use axum::{
+    middleware,
+    routing::{get, post},
+    Router,
+};
 use axum_server::Handle;
 use ethers::prelude::*;
 use futures::future::BoxFuture;
@@ -17,12 +21,12 @@ use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 use tracing::error_span;
 
-use crate::{bindings::Seaport, state::AppState};
 use crate::configuration::{DatabaseSettings, Settings};
 use crate::middleware::{track_prometheus_metrics, RequestId, RequestIdLayer};
 use crate::request_for_quote::request_for_quote_server::RequestForQuoteServer;
 use crate::routes::*;
 use crate::services::*;
+use crate::{bindings::Seaport, state::AppState};
 
 pub fn get_connection_pool(configuration: &DatabaseSettings) -> PgPool {
     PgPoolOptions::new()
@@ -60,7 +64,7 @@ pub fn run(
     let state = AppState {
         db_pool: db_pool.clone(),
         rpc: rpc.clone(),
-        seaport: seaport.clone()
+        seaport: seaport.clone(),
     };
 
     // TODO(Cleanup duplicate state)
@@ -69,7 +73,10 @@ pub fn run(
         .route("/health_check", get(health_check))
         .route("/metrics/prometheus", get(metrics_prometheus))
         .route("/listings", post(seaport_opensea_create_listing))
-        .route("/seaport/opensea/listings", post(seaport_opensea_create_listing))
+        .route(
+            "/seaport/opensea/listings",
+            post(seaport_opensea_create_listing),
+        )
         .layer(tracing_layer)
         .layer(RequestIdLayer)
         .layer(middleware::from_fn(track_prometheus_metrics))

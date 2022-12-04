@@ -1,5 +1,5 @@
 use axum::extract::FromRef;
-use ethers::providers::{Provider, Http};
+use ethers::providers::{Http, Provider};
 use sqlx::PgPool;
 
 use crate::bindings::Seaport;
