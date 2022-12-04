@@ -81,8 +81,14 @@ pub fn run(
             post(seaport_opensea_create_offer).get(seaport_opensea_retrieve_offers),
         )
         // Legacy endpoints to keep compatibility
-        .route("/listings", post(seaport_opensea_create_listing).get(seaport_opensea_retrieve_listings))
-        .route("/offers", post(seaport_opensea_create_offer).get(seaport_opensea_retrieve_offers))
+        .route(
+            "/listings",
+            post(seaport_opensea_create_listing).get(seaport_opensea_retrieve_listings),
+        )
+        .route(
+            "/offers",
+            post(seaport_opensea_create_offer).get(seaport_opensea_retrieve_offers),
+        )
         // Layers/middleware
         .layer(tracing_layer)
         .layer(RequestIdLayer)
