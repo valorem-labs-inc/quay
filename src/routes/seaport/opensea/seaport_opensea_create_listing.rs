@@ -16,10 +16,7 @@ pub async fn seaport_opensea_create_listing(
     Json(listing): Json<OrderInput>,
 ) -> impl IntoResponse {
     // TODO(Pass authenticated user details for verification in order)
-    if insert_listing(&db_pool, &listing, &seaport)
-        .await
-        .is_err()
-    {
+    if insert_listing(&db_pool, &listing, &seaport).await.is_err() {
         return (StatusCode::INTERNAL_SERVER_ERROR).into_response();
     }
 
