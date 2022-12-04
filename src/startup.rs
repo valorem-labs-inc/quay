@@ -36,7 +36,7 @@ pub fn run(
     db_pool: PgPool,
     rpc: Provider<Http>,
 ) -> BoxFuture<'static, Result<(), std::io::Error>> {
-    let provider = Arc::new(rpc);
+    let provider = Arc::new(rpc.clone());
 
     let seaport = Seaport::new(
         H160::from_str("0x00000000006c3852cbEf3e08E8dF289169EdE581").unwrap(),
@@ -67,9 +67,9 @@ pub fn run(
         .layer(RequestIdLayer)
         .layer(middleware::from_fn(track_prometheus_metrics))
         .layer(cors)
-        .with_state(db_pool)
-        .with_state(rpc)
-        .with_state(seaport)
+        .with_state(db_pool.clone())
+        .with_state(rpc.clone())
+        .with_state(seaport.clone())
         .map_err(BoxError::from)
         .boxed_clone();
 
