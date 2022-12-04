@@ -1,6 +1,5 @@
 use crate::{
     structs::{DBConsideration, DBOffer, DBOrder, OrderQuery, RetrieveResponse},
-    utils::token_ids_to_u256_abi_encoded,
 };
 use anyhow::Error;
 use axum::{
