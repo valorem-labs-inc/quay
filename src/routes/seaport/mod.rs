@@ -1,3 +1,3 @@
-mod opensea;
+mod legacy;
 
-pub use opensea::*;
+pub use legacy::*;

@@ -10,28 +10,28 @@ use sqlx::PgPool;
 use crate::bindings::seaport::Seaport;
 use crate::structs::OrderInput;
 
-pub async fn seaport_opensea_create_listing(
+pub async fn seaport_legacy_create_offer(
     State(db_pool): State<PgPool>,
     State(seaport): State<Seaport<Provider<Http>>>,
-    Json(listing): Json<OrderInput>,
+    Json(offer): Json<OrderInput>,
 ) -> impl IntoResponse {
     // TODO(Pass authenticated user details for verification in order)
-    if insert_listing(&db_pool, &listing, &seaport).await.is_err() {
+    if insert_offer(&db_pool, &offer, &seaport).await.is_err() {
         return (StatusCode::INTERNAL_SERVER_ERROR).into_response();
     }
 
     (StatusCode::OK).into_response()
 }
 
-pub async fn insert_listing(
+pub async fn insert_offer(
     pool: &PgPool,
-    new_listing: &OrderInput,
+    new_offer: &OrderInput,
     seaport: &Seaport<Provider<Http>>,
 ) -> Result<(), Error> {
     // Could we generate this without an RPC call?
 
     let order_hash = seaport
-        .get_order_hash(new_listing.to_components().await)
+        .get_order_hash(new_offer.to_components().await)
         .call()
         .await
         .expect("failed to calculate hash");
@@ -49,7 +49,7 @@ pub async fn insert_listing(
                 VALUES ($1::TEXT::citext)
                 ON CONFLICT (address) DO NOTHING;
         "#,
-        new_listing.parameters.offerer.encode_hex()
+        new_offer.parameters.offerer.encode_hex()
     )
     .execute(&mut tx)
     .await
@@ -63,7 +63,7 @@ pub async fn insert_listing(
                 VALUES ($1::TEXT::citext)
                 ON CONFLICT (address) DO NOTHING;
         "#,
-        new_listing.parameters.zone.encode_hex()
+        new_offer.parameters.zone.encode_hex()
     )
     .execute(&mut tx)
     .await
@@ -91,17 +91,17 @@ pub async fn insert_listing(
                 ON CONFLICT (hash) DO NOTHING;
         "#,
         order_hash.encode_hex(),
-        new_listing.parameters.offerer.encode_hex(),
-        new_listing.parameters.zone.encode_hex(),
-        new_listing.parameters.zone_hash.encode_hex(),
-        new_listing.parameters.start_time.as_u64() as i64,
-        new_listing.parameters.end_time.as_u64() as i64,
-        new_listing.parameters.order_type as i32,
-        new_listing.parameters.total_original_consideration_items as i32,
-        new_listing.parameters.nonce as i64,
-        new_listing.parameters.salt.to_string(),
-        new_listing.parameters.conduit_key.encode_hex(),
-        new_listing.signature.to_string(),
+        new_offer.parameters.offerer.encode_hex(),
+        new_offer.parameters.zone.encode_hex(),
+        new_offer.parameters.zone_hash.encode_hex(),
+        new_offer.parameters.start_time.as_u64() as i64,
+        new_offer.parameters.end_time.as_u64() as i64,
+        new_offer.parameters.order_type as i32,
+        new_offer.parameters.total_original_consideration_items as i32,
+        new_offer.parameters.nonce as i64,
+        new_offer.parameters.salt.to_string(),
+        new_offer.parameters.conduit_key.encode_hex(),
+        new_offer.signature.to_string(),
     )
     .execute(&mut tx)
     .await
@@ -110,7 +110,7 @@ pub async fn insert_listing(
         e
     })?;
     let mut position = 0;
-    for offer in &new_listing.parameters.offer {
+    for offer in &new_offer.parameters.offer {
         sqlx::query!(
             r#"
                 INSERT INTO addresses (address)
@@ -158,7 +158,7 @@ pub async fn insert_listing(
         position += 1;
     }
     position = 0;
-    for consideration in &new_listing.parameters.consideration {
+    for consideration in &new_offer.parameters.consideration {
         sqlx::query!(
             r#"
                 INSERT INTO addresses (address)
