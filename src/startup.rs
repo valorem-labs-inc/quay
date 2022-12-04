@@ -8,11 +8,13 @@ use axum::{
     Router,
 };
 use axum_server::Handle;
+use bb8::Pool;
 use ethers::prelude::*;
 use futures::future::BoxFuture;
 use futures::FutureExt;
 use http::{header::CONTENT_TYPE, Request};
 use hyper::Body;
+use secrecy::ExposeSecret;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 use tonic::transport::Server;
@@ -23,6 +25,7 @@ use tracing::error_span;
 
 use crate::configuration::{DatabaseSettings, Settings};
 use crate::middleware::{track_prometheus_metrics, RequestId, RequestIdLayer};
+use crate::redis::RedisConnectionManager;
 use crate::request_for_quote::request_for_quote_server::RequestForQuoteServer;
 use crate::routes::*;
 use crate::services::*;
@@ -37,6 +40,7 @@ pub fn get_connection_pool(configuration: &DatabaseSettings) -> PgPool {
 pub fn run(
     listener: TcpListener,
     db_pool: PgPool,
+    redis_pool: Pool<RedisConnectionManager>,
     rpc: Provider<Http>,
 ) -> BoxFuture<'static, Result<(), std::io::Error>> {
     let provider = Arc::new(rpc.clone());
@@ -63,6 +67,7 @@ pub fn run(
 
     let state = AppState {
         db_pool,
+        redis_pool,
         rpc,
         seaport,
     };
@@ -115,6 +120,7 @@ pub fn run(
 
     let handle = Handle::new();
 
+    // TODO(Should we be using a tokio future here?)
     axum_server::from_tcp(listener)
         .handle(handle)
         .serve(Shared::new(http_grpc))
@@ -130,7 +136,12 @@ impl Application {
     // We have converted the `build` function into a constructor for
     // `Application`.
     pub async fn build(configuration: Settings) -> Result<Self, anyhow::Error> {
-        let connection_pool = get_connection_pool(&configuration.database);
+        let db_pool = get_connection_pool(&configuration.database);
+        let redis_pool = Pool::builder()
+            .build(crate::redis::RedisConnectionManager::new(
+                configuration.redis_url.expose_secret().as_str(),
+            )?)
+            .await?;
 
         let provider: Provider<Http> =
             Provider::new(Http::from_str(configuration.rpc.uri.as_str()).unwrap());
@@ -143,7 +154,7 @@ impl Application {
         let listener = TcpListener::bind(&address)?;
         let port = listener.local_addr().unwrap().port();
 
-        let server = run(listener, connection_pool, provider);
+        let server = run(listener, db_pool, redis_pool, provider);
 
         Ok(Self { server, port })
     }

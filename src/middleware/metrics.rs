@@ -3,6 +3,7 @@ use std::time::Instant;
 
 use crate::telemetry::{get_metric_storage_registry, ApiMetrics};
 
+// TODO(This middleware should probably just live in the `telemetry` module)
 pub async fn track_prometheus_metrics<B>(req: Request<B>, next: Next<B>) -> impl IntoResponse {
     let metrics = ApiMetrics::inst(get_metric_storage_registry()).unwrap();
 

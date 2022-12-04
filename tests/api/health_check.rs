@@ -8,7 +8,7 @@ use crate::helpers::spawn_app;
 //
 // You can inspect what code gets generated using
 // `cargo expand --test health_check` (<- name of the test file)
-#[actix_rt::test]
+#[tokio::test]
 async fn health_check_works() {
     // Arrange
     let app = spawn_app().await;
