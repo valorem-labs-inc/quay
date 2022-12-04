@@ -148,13 +148,13 @@ pub async fn insert_listing(
             offer.identifier_or_criteria.encode_hex(),
             offer.start_amount.encode_hex(),
             offer.end_amount.encode_hex()
-    )
-            .execute(&mut tx)
-            .await
-            .map_err(|e| {
-                tracing::error!("Failed to execute query: {:?}", e);
-                e
-            })?;
+        )
+        .execute(&mut tx)
+        .await
+        .map_err(|e| {
+            tracing::error!("Failed to execute query: {:?}", e);
+            e
+        })?;
         position += 1;
     }
     position = 0;
@@ -211,13 +211,13 @@ pub async fn insert_listing(
             consideration.start_amount.encode_hex(),
             consideration.end_amount.encode_hex(),
             consideration.recipient.encode_hex()
-    )
-            .execute(&mut tx)
-            .await
-            .map_err(|e| {
-                tracing::error!("Failed to execute query: {:?}", e);
-                e
-            })?;
+        )
+        .execute(&mut tx)
+        .await
+        .map_err(|e| {
+            tracing::error!("Failed to execute query: {:?}", e);
+            e
+        })?;
         position += 1;
     }
     tx.commit().await.map_err(|e| {
