@@ -1,41 +1,44 @@
 use crate::{
-    structs::{DBConsideration, DBOffer, DBOrder, RetrieveOrdersQuery, RetrieveResponse},
+    structs::{DBConsideration, DBOffer, DBOrder, OrderQuery, RetrieveResponse},
     utils::token_ids_to_u256_abi_encoded,
 };
-use actix_web::{error, http::StatusCode};
-use ethers::abi::AbiEncode;
-use paperclip::actix::{
-    api_v2_operation, get,
-    web::{self, Json},
+use anyhow::Error;
+use axum::{
+    extract::{Query, State},
+    response::IntoResponse,
+    Json,
 };
+use ethers::{abi::AbiEncode, prelude::*};
+use http::StatusCode;
 use sqlx::{query_as, PgPool};
 
 async fn seaport_opensea_retrieve_offers(
-    query: web::Query<RetrieveOrdersQuery>,
-    pool: web::Data<PgPool>,
-) -> Result<Json<RetrieveResponse>, actix_web::Error> {
-    let token_ids = match token_ids_to_u256_abi_encoded(&query.token_ids) {
-        Ok(token_ids) => token_ids,
-        Err(e) => {
-            return Err(
-                error::InternalError::new(e.to_string(), StatusCode::UNPROCESSABLE_ENTITY).into(),
-            )
-        }
-    };
-
+    State(pool): State<PgPool>,
+    query: Query<OrderQuery>,
+) -> impl IntoResponse {
     match retrieve_offers(
         &pool,
         query.asset_contract_address.encode_hex(),
-        token_ids.as_slice(),
-        query.active.unwrap_or(false),
+        query
+            .token_ids
+            .clone()
+            .into_iter()
+            .map(|token_id| {
+                U256::from_str_radix(&token_id, 10)
+                    .unwrap_or(U256::MAX)
+                    .encode_hex()
+            })
+            .collect::<Vec<String>>()
+            .as_slice(),
+        query.offerer.encode_hex(),
         query.limit,
     )
     .await
     {
-        Ok(retrieved_offers) => Ok(Json(retrieved_offers)),
-        Err(e) => {
-            Err(error::InternalError::new(e.to_string(), StatusCode::INTERNAL_SERVER_ERROR).into())
+        Ok(retrieved_listings) => {
+            (StatusCode::OK, Json::<RetrieveResponse>(retrieved_listings)).into_response()
         }
+        _ => (StatusCode::INTERNAL_SERVER_ERROR).into_response(),
     }
 }
 
@@ -43,9 +46,9 @@ async fn retrieve_offers(
     pool: &PgPool,
     asset_contract_address: String,
     token_ids: &[String],
-    active: bool,
+    offerer: String,
     limit: Option<i64>,
-) -> Result<RetrieveResponse, anyhow::Error> {
+) -> Result<RetrieveResponse, Error> {
     let db_orders: Vec<DBOrder> = query_as!(
         DBOrder,
         r#"
@@ -58,11 +61,10 @@ async fn retrieve_offers(
                 O.end_time as "end_time!",
                 O.order_type as "order_type!",
                 O.total_original_consideration_items as "total_original_consideration_items!",
+                O.counter as "counter!",
                 O.salt as "salt!",
                 O.conduit_key as "conduit_key!",
                 O.signature as "signature!",
-                O.listing_time as "listing_time!",
-                O.counter as "counter!",
                 array_agg(DISTINCT (
                     OC.position,
                     OC.item_type,
@@ -83,26 +85,18 @@ async fn retrieve_offers(
             FROM orders O
                 INNER JOIN considerations OC ON O.hash = OC.order
                 INNER JOIN offers OOF ON O.hash = OOF.order
-            WHERE
-                O.hash IN (
-                    SELECT C.order FROM considerations C 
-                        WHERE (C.token = $1)
-                        AND (C.identifier_or_criteria = ANY($2::TEXT[]))
-                )
-               AND
-                ((NOT $3) OR (
-                        O.cancelled = FALSE
-                    AND O.finalized = FALSE
-                    AND O.marked_invalid = FALSE
-                    AND O.start_time <= extract(epoch from now())
-                    AND O.end_time >= extract(epoch from now())
-                ))
+            WHERE O.hash IN (
+                SELECT C.order FROM considerations C 
+                    WHERE (C.token = $1 OR $1 = '0x0000000000000000000000000000000000000000000000000000000000000000')
+                    AND (C.identifier_or_criteria = ANY($2::TEXT[]) OR cardinality($2::TEXT[]) = 0)
+            )
+            AND (O.offerer = $3 OR $3 = '0x0000000000000000000000000000000000000000000000000000000000000000')
             GROUP BY O.hash
             LIMIT $4;
         "#,
         asset_contract_address,
         &token_ids[..],
-        active,
+        offerer,
         limit.unwrap_or(1)
     )
     .fetch_all(pool)
