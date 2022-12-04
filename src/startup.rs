@@ -62,9 +62,9 @@ pub fn run(
     let cors = CorsLayer::very_permissive();
 
     let state = AppState {
-        db_pool: db_pool.clone(),
-        rpc: rpc.clone(),
-        seaport: seaport.clone(),
+        db_pool,
+        rpc,
+        seaport,
     };
 
     // TODO(Cleanup duplicate state)
