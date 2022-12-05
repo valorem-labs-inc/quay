@@ -1,9 +1,7 @@
 use http::Request;
-use hyper::Body;
-use tower_http::classify::{SharedClassifier, ServerErrorsAsFailures};
-use tower_http::trace::{TraceLayer, DefaultMakeSpan, DefaultOnFailure, DefaultOnEos, DefaultOnBodyChunk, DefaultOnResponse, DefaultOnRequest, MakeSpan};
+use tower_http::trace::MakeSpan;
 use tracing::subscriber::set_global_default;
-use tracing::{error_span, Subscriber, Span};
+use tracing::{error_span, Span, Subscriber};
 use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
 use tracing_log::LogTracer;
 use tracing_subscriber::fmt::MakeWriter;

@@ -21,15 +21,17 @@ use tonic::transport::Server;
 use tower::{make::Shared, steer::Steer, BoxError, ServiceExt};
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
-use tracing::error_span;
 
-use crate::{configuration::{DatabaseSettings, Settings}, telemetry::TowerMakeSpanWithConstantId};
-use crate::middleware::{track_prometheus_metrics, RequestId, RequestIdLayer};
+use crate::middleware::{track_prometheus_metrics, RequestIdLayer};
 use crate::redis_pool::RedisConnectionManager;
 use crate::rfq::quote_server::QuoteServer;
 use crate::routes::*;
 use crate::services::*;
 use crate::{bindings::Seaport, state::AppState};
+use crate::{
+    configuration::{DatabaseSettings, Settings},
+    telemetry::TowerMakeSpanWithConstantId,
+};
 
 pub fn get_connection_pool(configuration: &DatabaseSettings) -> PgPool {
     PgPoolOptions::new()
@@ -92,7 +94,7 @@ pub fn run(
         .boxed_clone();
 
     let grpc = Server::builder()
-    .layer(TraceLayer::new_for_http().make_span_with(TowerMakeSpanWithConstantId))
+        .layer(TraceLayer::new_for_http().make_span_with(TowerMakeSpanWithConstantId))
         .layer(RequestIdLayer)
         .add_service(QuoteServer::new(RFQService::default()))
         .into_service()
