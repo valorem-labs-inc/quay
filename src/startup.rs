@@ -94,8 +94,8 @@ pub fn run(
         .boxed_clone();
 
     let grpc = Server::builder()
-        .layer(TraceLayer::new_for_http().make_span_with(TowerMakeSpanWithConstantId))
         .layer(RequestIdLayer)
+        .layer(TraceLayer::new_for_http().make_span_with(TowerMakeSpanWithConstantId))
         .add_service(QuoteServer::new(RFQService::default()))
         .into_service()
         .map_response(|r| r.map(axum::body::boxed))
