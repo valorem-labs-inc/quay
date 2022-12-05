@@ -1,6 +1,4 @@
-
 use ethers::{abi::AbiEncode, prelude::*};
-
 
 use super::InsertOnlyQuery;
 
