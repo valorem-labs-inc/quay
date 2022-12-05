@@ -1,11 +1,10 @@
 pub mod bindings;
 pub mod configuration;
 pub mod indexer;
-
-pub mod request_for_quote {
-    tonic::include_proto!("quote");
+pub mod rfq {
+    #![allow(clippy::derive_partial_eq_without_eq)]
+    tonic::include_proto!("quay");
 }
-
 pub mod middleware;
 pub mod redis_pool;
 pub mod routes;
