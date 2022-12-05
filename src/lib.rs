@@ -5,6 +5,7 @@ pub mod middleware;
 pub mod redis;
 pub mod routes;
 pub mod services;
+pub mod session;
 pub mod startup;
 pub mod state;
 pub mod structs;
