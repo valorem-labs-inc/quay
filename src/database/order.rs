@@ -8,11 +8,6 @@ use crate::{
 };
 
 pub fn save_order(hash: [u8; 32], order: &OrderInput) -> InsertOnlyQuery {
-    let _timer = DatabaseMetrics::get()
-        .database_queries
-        .with_label_values(&["save_order"])
-        .start_timer();
-
     sqlx::query!(
         r#"
             INSERT INTO orders (
@@ -48,11 +43,6 @@ pub fn save_order(hash: [u8; 32], order: &OrderInput) -> InsertOnlyQuery {
 }
 
 pub fn save_offer(hash: [u8; 32], position: i32, offer: &OfferItem) -> InsertOnlyQuery {
-    let _timer = DatabaseMetrics::get()
-        .database_queries
-        .with_label_values(&["save_offer"])
-        .start_timer();
-
     sqlx::query!(
         r#"
             INSERT INTO offers (
@@ -82,11 +72,6 @@ pub fn save_consideration(
     position: i32,
     consideration: &ConsiderationItem,
 ) -> InsertOnlyQuery {
-    let _timer = DatabaseMetrics::get()
-        .database_queries
-        .with_label_values(&["save_consideration"])
-        .start_timer();
-
     sqlx::query!(
         r#"
             INSERT INTO considerations (
