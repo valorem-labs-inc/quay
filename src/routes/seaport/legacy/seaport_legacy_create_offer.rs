@@ -3,7 +3,7 @@ use axum::{
     extract::{Json, State},
     response::IntoResponse,
 };
-use ethers::{abi::AbiEncode, prelude::*};
+use ethers::prelude::*;
 use http::StatusCode;
 use sqlx::PgPool;
 
