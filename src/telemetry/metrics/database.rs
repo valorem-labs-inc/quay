@@ -1,6 +1,4 @@
-
-
-use prometheus::{HistogramVec};
+use prometheus::HistogramVec;
 use prometheus_metric_storage::{MetricStorage, StorageRegistry};
 
 use super::get_metric_storage_registry;
