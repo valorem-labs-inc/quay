@@ -1,24 +1,17 @@
+use crate::rfq::quote_server::Quote;
+use crate::rfq::QuoteResponse;
+use crate::rfq::ValoremQuoteRequest;
 use tonic::{Response, Status};
 
-use crate::request_for_quote::request_for_quote_server::RequestForQuote;
-use crate::request_for_quote::QuoteRequest;
-use crate::request_for_quote::QuoteResponse;
-
 #[derive(Debug, Default)]
-pub struct MyRFQ {}
+pub struct RFQService {}
 
 #[tonic::async_trait]
-impl RequestForQuote for MyRFQ {
-    async fn request_quote(
+impl Quote for RFQService {
+    async fn quote(
         &self,
-        request: tonic::Request<QuoteRequest>,
+        _request: tonic::Request<ValoremQuoteRequest>,
     ) -> Result<Response<QuoteResponse>, Status> {
-        println!("Got a request for quote: {:?}", request);
-
-        let reply = QuoteResponse {
-            price: format!("Hello $1 for {}!", request.into_inner().token),
-        };
-
-        Ok(Response::new(reply))
+        Err(Status::unimplemented("Not implemented yet"))
     }
 }

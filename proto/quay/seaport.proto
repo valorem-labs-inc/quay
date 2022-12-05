@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+import "types.proto";
+
+package quay;
+
+// Reference: https://docs.opensea.io/v2.0/reference/seaport-structs
+// Reference: https://docs.opensea.io/v2.0/reference/seaport-enums
+
+enum ItemType {
+    NATIVE = 0;
+    ERC20 = 1;
+    ERC721 = 2;
+    ERC1155 = 3;
+    ERC721_WITH_CRITERIA = 4;
+    ERC1155_WITH_CRITERIA = 5;
+}
+
+message ConsiderationItem {
+    ItemType item_type = 1;
+    H160 token = 2;
+    H256 identifier_or_criteria = 3; // uint256
+    H256 start_amount = 4; // uint256
+    H256 end_amount = 5; // uint256
+    H160 recipient = 6;
+}
+
+message OfferItem {
+    ItemType item_type = 1;
+    H160 token = 2;
+    H256 identifier_or_criteria = 3; // uint256
+    H256 start_amount = 4; // uint256
+    H256 end_amount = 5; // uint256
+}
+
+enum OrderType {
+    FULL_OPEN = 0;
+    PARTIAL_OPEN = 1;
+    FULL_RESTRICTED = 2;
+    PARTIAL_RESTRICTED = 3;
+}
+
+message OrderParameters {
+    H160 offerer = 1;
+    H160 zone = 2;
+    repeated OfferItem offers = 3;
+    repeated ConsiderationItem considerations = 4;
+    OrderType order_type = 5;
+    H256 start_time = 6; // uint256
+    H256 end_time = 7; // uint256
+    H256 zone_hash = 8; // bytes32
+    H256 total_original_consideration_items = 9;
+    H256 salt = 10; // bytes32
+    H256 conduit_key = 11; // bytes32
+    H256 nonce = 12;
+}
+
+message Order {
+    OrderParameters parameters = 1;
+    H256 signature = 2; // bytes32
+}
