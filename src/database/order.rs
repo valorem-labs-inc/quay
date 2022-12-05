@@ -4,7 +4,6 @@ use super::InsertOnlyQuery;
 use crate::{
     bindings::{ConsiderationItem, OfferItem},
     structs::OrderInput,
-    telemetry::DatabaseMetrics,
 };
 
 pub fn save_order(hash: [u8; 32], order: &OrderInput) -> InsertOnlyQuery {

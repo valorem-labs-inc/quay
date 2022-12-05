@@ -1,7 +1,6 @@
 use ethers::{abi::AbiEncode, prelude::*};
 
 use super::InsertOnlyQuery;
-use crate::telemetry::DatabaseMetrics;
 
 pub fn save_address(address: H160) -> InsertOnlyQuery {
     sqlx::query!(
