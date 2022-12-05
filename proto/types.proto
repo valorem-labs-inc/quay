@@ -1,7 +1,7 @@
 // Partially from: https://github.com/ledgerwatch/interfaces/blob/master/types/types.proto
 syntax = "proto3";
 
-package proto;
+package quay;
 
 message H40 {
     uint32 hi = 1;
