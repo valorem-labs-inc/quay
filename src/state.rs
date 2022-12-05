@@ -4,7 +4,7 @@ use ethers::providers::{Http, Provider};
 use sqlx::PgPool;
 
 use crate::bindings::Seaport;
-use crate::redis::RedisConnectionManager;
+use crate::redis_pool::RedisConnectionManager;
 
 #[derive(Clone)]
 pub struct AppState {

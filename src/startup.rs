@@ -25,7 +25,7 @@ use tracing::error_span;
 
 use crate::configuration::{DatabaseSettings, Settings};
 use crate::middleware::{track_prometheus_metrics, RequestId, RequestIdLayer};
-use crate::redis::RedisConnectionManager;
+use crate::redis_pool::RedisConnectionManager;
 use crate::request_for_quote::request_for_quote_server::RequestForQuoteServer;
 use crate::routes::*;
 use crate::services::*;
@@ -138,7 +138,7 @@ impl Application {
     pub async fn build(configuration: Settings) -> Result<Self, anyhow::Error> {
         let db_pool = get_connection_pool(&configuration.database);
         let redis_pool = Pool::builder()
-            .build(crate::redis::RedisConnectionManager::new(
+            .build(crate::redis_pool::RedisConnectionManager::new(
                 configuration.redis_url.expose_secret().as_str(),
             )?)
             .await?;
