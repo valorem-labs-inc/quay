@@ -105,6 +105,7 @@ pub fn run(
         .boxed_clone();
 
     let grpc = Server::builder()
+        .layer(RequestIdLayer)
         .add_service(QuoteServer::new(RFQService::default()))
         .into_service()
         .map_response(|r| r.map(axum::body::boxed))
