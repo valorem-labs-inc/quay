@@ -2,31 +2,46 @@ use std::fmt::{Debug, Formatter};
 
 use axum_sessions::async_session::{async_trait, serde_json, Result, Session, SessionStore};
 use redis::aio::ConnectionManager;
-use redis::{AsyncCommands, Client};
+use redis::AsyncCommands;
 
 /// This redis session store uses a multiplexed connection to redis with an auto-reconnect feature.
 /// # RedisSessionStore
+/// This redis session store uses a multiplexed connection to redis with an auto-reconnect feature.
 #[derive(Clone)]
 pub struct RedisSessionStore {
+    /// A `ConnectionManager` that wraps a multiplexed connection and automatically reconnects to the server when necessary.
     connection: ConnectionManager,
+    /// The prefix to be used for all session keys in Redis.
     prefix: Option<String>,
 }
 
 impl RedisSessionStore {
+    /// Constructs a new `RedisSessionStore` instance.
+    ///
+    /// # Arguments
+    ///
+    /// * `connection` - The `ConnectionManager` to be used for Redis connections.
+    /// * `prefix` - An optional prefix to be used for all session keys in Redis.
     pub fn new(connection: ConnectionManager, prefix: Option<String>) -> Self {
         Self { connection, prefix }
     }
 
+    /// Sets the prefix for session keys in Redis.
+    ///
+    /// # Arguments
+    ///
+    /// * `prefix` - The prefix to be used for all session keys in Redis.
     pub fn with_prefix(mut self, prefix: impl AsRef<str>) -> Self {
         self.prefix = Some(prefix.as_ref().to_owned());
         self
     }
 
+    /// Returns the session keys in Redis that match the prefix.
     async fn ids(&self) -> Result<Vec<String>> {
         Ok(self.connection.clone().keys(self.prefix_key("*")).await?)
     }
 
-    /// returns the number of sessions in this store
+    /// Returns the number of sessions in this store.
     pub async fn count(&self) -> Result<usize> {
         if self.prefix.is_none() {
             Ok(redis::cmd("DBSIZE")
@@ -37,6 +52,8 @@ impl RedisSessionStore {
         }
     }
 
+    /// Returns the time-to-live (TTL) for the given session.
+    #[cfg(test)]
     async fn ttl_for_session(&self, session: &Session) -> Result<usize> {
         Ok(self
             .connection
@@ -45,6 +62,7 @@ impl RedisSessionStore {
             .await?)
     }
 
+    /// Prefixes the given key with the configured session key prefix.
     fn prefix_key(&self, key: impl AsRef<str>) -> String {
         if let Some(ref prefix) = self.prefix {
             format!("{}{}", prefix, key.as_ref())
@@ -65,22 +83,47 @@ impl Debug for RedisSessionStore {
 
 #[async_trait]
 impl SessionStore for RedisSessionStore {
+    /// Loads the session with the given cookie value.
+    ///
+    /// # Arguments
+    ///
+    /// * `cookie_value` - The cookie value to load the session for.
+    ///
+    /// # Returns
+    ///
+    /// If the session exists, returns a `Some` with the session. Otherwise, returns `None`.
     async fn load_session(&self, cookie_value: String) -> Result<Option<Session>> {
+        // Extract the session id from the cookie value.
         let id = Session::id_from_cookie_value(&cookie_value)?;
+
+        // Attempt to get the session data from Redis.
         let record: Option<String> = self.connection.clone().get(self.prefix_key(id)).await?;
+
+        // If a session was found, deserialize it and return it. Otherwise, return `None`.
         match record {
             Some(value) => Ok(serde_json::from_str(&value)?),
             None => Ok(None),
         }
     }
 
+    /// Stores the given session.
+    ///
+    /// # Arguments
+    ///
+    /// * `session` - The session to store.
+    ///
+    /// # Returns
+    ///
+    /// If the session was successfully stored, returns a `Some` with the session's cookie value. Otherwise, returns `None`.
     async fn store_session(&self, session: Session) -> Result<Option<String>> {
+        // Get the session id with the prefix applied.
         let id = self.prefix_key(session.id());
+        // Serialize the session.
         let string = serde_json::to_string(&session)?;
 
+        // Set the session in Redis with the appropriate expiry time.
         match session.expires_in() {
             None => self.connection.clone().set(id, string).await?,
-
             Some(expiry) => {
                 self.connection
                     .clone()
@@ -89,15 +132,31 @@ impl SessionStore for RedisSessionStore {
             }
         };
 
+        // Return the session's cookie value.
         Ok(session.into_cookie_value())
     }
 
+    /// Destroys the given session.
+    ///
+    /// # Arguments
+    ///
+    /// * `session` - The session to destroy.
+    ///
+    /// # Returns
+    ///
+    /// If the session was successfully destroyed, returns `Ok(())`. Otherwise, returns an error.
     async fn destroy_session(&self, session: Session) -> Result {
+        // Get the session id with the prefix applied.
         let key = self.prefix_key(session.id().to_string());
+        // Delete the session from Redis.
         self.connection.clone().del(key).await?;
         Ok(())
     }
 
+    /// Clears all sessions in the store.
+    ///
+    /// If `prefix` is not set, this will clear the entire Redis database.
+    /// Otherwise, it will only clear the sessions with the specified prefix.
     async fn clear_store(&self) -> Result {
         if self.prefix.is_none() {
             let _: () = redis::cmd("FLUSHDB")
@@ -115,6 +174,7 @@ impl SessionStore for RedisSessionStore {
 
 #[cfg(test)]
 mod tests {
+    use redis::Client;
     use std::time::Duration;
 
     use super::*;
