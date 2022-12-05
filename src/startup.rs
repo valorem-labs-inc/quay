@@ -23,7 +23,7 @@ use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 use tracing::error_span;
 
-use crate::configuration::{DatabaseSettings, Settings};
+use crate::{configuration::{DatabaseSettings, Settings}, telemetry::TowerMakeSpanWithConstantId};
 use crate::middleware::{track_prometheus_metrics, RequestId, RequestIdLayer};
 use crate::redis_pool::RedisConnectionManager;
 use crate::rfq::quote_server::QuoteServer;
@@ -50,19 +50,6 @@ pub fn run(
         provider,
     );
 
-    let tracing_layer = TraceLayer::new_for_http().make_span_with(|request: &Request<Body>| {
-        let request_id = request
-            .extensions()
-            .get::<RequestId>()
-            .map(ToString::to_string)
-            .unwrap_or_else(|| "unknown".into());
-        error_span!(
-            "request",
-            id = %request_id,
-            method = %request.method(),
-            uri = %request.uri(),
-        )
-    });
     let cors = CorsLayer::very_permissive();
 
     let state = AppState {
@@ -95,7 +82,7 @@ pub fn run(
             post(seaport_legacy_create_offer).get(seaport_legacy_retrieve_offers),
         )
         // Layers/middleware
-        .layer(tracing_layer)
+        .layer(TraceLayer::new_for_http().make_span_with(TowerMakeSpanWithConstantId))
         .layer(RequestIdLayer)
         .layer(middleware::from_fn(track_prometheus_metrics))
         .layer(cors)
@@ -105,6 +92,7 @@ pub fn run(
         .boxed_clone();
 
     let grpc = Server::builder()
+    .layer(TraceLayer::new_for_http().make_span_with(TowerMakeSpanWithConstantId))
         .layer(RequestIdLayer)
         .add_service(QuoteServer::new(RFQService::default()))
         .into_service()
