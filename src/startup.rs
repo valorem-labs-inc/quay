@@ -26,7 +26,7 @@ use tracing::error_span;
 use crate::configuration::{DatabaseSettings, Settings};
 use crate::middleware::{track_prometheus_metrics, RequestId, RequestIdLayer};
 use crate::redis_pool::RedisConnectionManager;
-use crate::request_for_quote::quote_server::QuoteServer;
+use crate::rfq::quote_server::QuoteServer;
 use crate::routes::*;
 use crate::services::*;
 use crate::{bindings::Seaport, state::AppState};

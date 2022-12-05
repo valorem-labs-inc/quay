@@ -9,10 +9,11 @@ package quay;
 // Reference: https://github.com/Alcibiades-Capital/quay/blob/v0.2.0/docs/SequenceDiagrams.md#request-for-quote-rfq-json-data-structure
 
 service Quote {
-    rpc Quote (QuoteRequest) returns (QuoteResponse);
+    rpc Quote (ValoremQuoteRequest) returns (QuoteResponse);
 }
 
-message QuoteRequest {
+// TODO(Should this only live in a downstream fork)
+message ValoremQuoteRequest {
     uint64 messageId = 1;
     H160 traderAddress = 2;
     H160 underlyingAsset = 3;
