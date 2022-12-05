@@ -1,11 +1,7 @@
 // Partially from: https://github.com/ledgerwatch/interfaces/blob/master/types/types.proto
 syntax = "proto3";
 
-//import "google/protobuf/descriptor.proto";
-
 package proto;
-
-//option go_package = "./types;types";
 
 message H40 {
     uint32 hi = 1;
