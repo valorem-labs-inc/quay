@@ -26,5 +26,6 @@ message ValoremQuoteRequest {
 
 message QuoteResponse {
     uint64 messageId = 1;
+    H160 traderAddress = 2;
     Order order = 3;
 }
