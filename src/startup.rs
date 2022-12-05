@@ -26,10 +26,10 @@ use tracing::error_span;
 use crate::configuration::{DatabaseSettings, Settings};
 use crate::middleware::{track_prometheus_metrics, RequestId, RequestIdLayer};
 use crate::redis::RedisConnectionManager;
-use crate::request_for_quote::request_for_quote_server::RequestForQuoteServer;
 use crate::routes::*;
 use crate::services::*;
 use crate::{bindings::Seaport, state::AppState};
+use crate::request_for_quote::quote_server::QuoteServer;
 
 pub fn get_connection_pool(configuration: &DatabaseSettings) -> PgPool {
     PgPoolOptions::new()

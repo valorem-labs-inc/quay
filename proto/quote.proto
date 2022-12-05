@@ -6,6 +6,7 @@ import "seaport.proto";
 package proto;
 
 // Reference: https://github.com/valorem-labs-inc/valorem-core/blob/master/src/interfaces/IOptionSettlementEngine.sol#L223
+// Reference: https://github.com/Alcibiades-Capital/quay/blob/v0.2.0/docs/SequenceDiagrams.md#request-for-quote-rfq-json-data-structure
 
 service Quote {
     rpc Quote (QuoteRequest) returns (QuoteResponse);
@@ -14,7 +15,6 @@ service Quote {
 message QuoteRequest {
     uint64 messageId = 1;
     string traderAddress = 2;
-
     string underlyingAsset = 3;
     H96 underlyingAmount = 4;
     string exerciseAsset = 5;
