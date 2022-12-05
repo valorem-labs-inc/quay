@@ -16,6 +16,7 @@ impl Trader for RFQService {
     async fn quote(&self, request: Request<Streaming<QuoteResponse>>) -> Result<Response<Self::QuoteStream>, Status> {
         let (tx, rx) = channel(64);
 
+        // Consume the first message - this will always be blank
         let mut client_stream = request.into_inner();
         if let Ok(msg) = client_stream.message().await {
             println!("Received: {}", msg.unwrap().message_id);
@@ -23,7 +24,8 @@ impl Trader for RFQService {
 
         tokio::spawn(async move {
             let mut a = 0u64;
-            for _ in 0..10 {
+            loop {
+                println!("Server sending {}", a);
                 tx.send(Ok(ValoremQuoteRequest {
                     message_id: a,
                     ..Default::default()
@@ -32,6 +34,10 @@ impl Trader for RFQService {
                     .unwrap();
 
                 a += 1;
+
+                if let Ok(msg) = client_stream.message().await {
+                    println!("Server received: {}", msg.unwrap().message_id);
+                }
             }
         });
 

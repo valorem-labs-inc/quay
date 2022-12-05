@@ -1,8 +1,7 @@
 use std::env;
 use std::process::exit;
-use futures::stream;
-use tonic::Request;
-use quay::rfq::QuoteResponse;
+use tokio::sync::mpsc;
+use quay::rfq::{QuoteResponse, ValoremQuoteRequest};
 use quay::rfq::trader_client::TraderClient;
 
 /// An example Market Maker (MM) client interface to Quay.
@@ -30,15 +29,27 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut client = TraderClient::new(channel);
 
     // Make an request for any quotes
-    let response = QuoteResponse {
-        ..Default::default()
-    };
+    let (tx, rx) = mpsc::channel(64);
+    let (mtx, mut mrx) = mpsc::channel::<ValoremQuoteRequest>(64);
 
-    let response = Request::new(stream::iter(vec![response]));
-    let mut quotes = client.quote(response).await.unwrap().into_inner();
+    tokio::spawn(async move {
+        let response = QuoteResponse {
+            ..Default::default()
+        };
+        tx.send(response).await.unwrap();
 
+        while let Some(quote) = mrx.recv().await {
+            tx.send(QuoteResponse{
+                message_id: quote.message_id,
+                ..Default::default()
+            }).await.unwrap();
+        }
+    });
+
+    let mut quotes = client.quote(tokio_stream::wrappers::ReceiverStream::new(rx)).await.unwrap().into_inner();
     while let Some(quote) = quotes.message().await? {
-        println!("Quote request {}", quote.message_id)
+        println!("Quote request {}", quote.message_id);
+        mtx.send(quote).await.unwrap();
     }
 
     Ok(())
