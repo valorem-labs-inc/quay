@@ -1,10 +1,10 @@
 use std::io::stdin;
 
-use rfq::{rfq_client::QuoteClient, QuoteRequest, QuoteResponse};
-
 pub mod quote {
     tonic::include_proto!("quote");
 }
+
+use quote::{quote_client::QuoteClient, QuoteRequest, QuoteResponse};
 
 /// An example Market Maker (MM) client interface to Quay.
 ///
