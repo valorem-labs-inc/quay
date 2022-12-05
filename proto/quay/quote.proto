@@ -12,6 +12,10 @@ service Quote {
     rpc Quote (ValoremQuoteRequest) returns (QuoteResponse);
 }
 
+service Trader {
+    rpc Quote (stream QuoteResponse) returns (stream ValoremQuoteRequest);
+}
+
 // TODO(Should this only live in a downstream fork)
 message ValoremQuoteRequest {
     uint64 messageId = 1;

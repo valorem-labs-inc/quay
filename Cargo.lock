@@ -2597,6 +2597,7 @@ dependencies = [
  "siwe",
  "sqlx",
  "tokio",
+ "tokio-stream",
  "tonic",
  "tonic-build",
  "tower",
