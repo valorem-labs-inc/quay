@@ -1,5 +1,5 @@
 mod address;
-mod database;
+mod db;
 
 pub use address::*;
-pub use database::*;
+pub use db::*;
