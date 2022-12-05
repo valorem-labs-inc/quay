@@ -147,7 +147,7 @@ impl SessionStore for RedisSessionStore {
     /// If the session was successfully destroyed, returns `Ok(())`. Otherwise, returns an error.
     async fn destroy_session(&self, session: Session) -> Result {
         // Get the session id with the prefix applied.
-        let key = self.prefix_key(session.id().to_string());
+        let key = self.prefix_key(session.id());
         // Delete the session from Redis.
         self.connection.clone().del(key).await?;
         Ok(())
