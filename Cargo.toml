@@ -9,6 +9,7 @@ path = "src/lib.rs"
 
 [dependencies]
 anyhow = "1.0.66"
+async-redis-session = { git = "https://github.com/0xAlcibiades/async-redis-session.git", branch = "tokio" }
 async-trait = "0.1.59"
 axum = { version = "0.6.1", features = ["http2", "query"] }
 axum-macros = "0.3.0"
@@ -28,7 +29,7 @@ prometheus-metric-storage = "0.5.0"
 prost = "0.11.3"
 # TODO(https://github.com/redis-rs/redis-rs/pull/725)
 # We should switch to rustls for a performance benefit when it's ready.
-redis = { version = "0.22.1", features = ["tokio-comp"] }
+redis = { version = "0.22.1", features = ["tokio-comp", "connection-manager"] }
 secrecy = { version = "0.8.0", features = ["serde"] }
 serde = { version = "1.0.148", features = ["derive"] }
 serde-aux = "4.1.2"
