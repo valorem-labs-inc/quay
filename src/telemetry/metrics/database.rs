@@ -8,7 +8,7 @@ use super::get_metric_storage_registry;
 pub struct DatabaseMetrics {
     /// Execution times of DB queries.
     #[metric(labels("type"))]
-    database_queries: HistogramVec,
+    pub database_queries: HistogramVec,
 }
 
 impl DatabaseMetrics {
