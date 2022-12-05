@@ -1,6 +1,6 @@
-use std::time::Duration;
 
-use prometheus::{HistogramVec, IntCounterVec};
+
+use prometheus::{HistogramVec};
 use prometheus_metric_storage::{MetricStorage, StorageRegistry};
 
 use super::get_metric_storage_registry;
