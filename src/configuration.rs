@@ -1,7 +1,9 @@
+use std::convert::{TryFrom, TryInto};
+
+use secrecy::Secret;
 use serde_aux::field_attributes::deserialize_number_from_string;
 use sqlx::postgres::{PgConnectOptions, PgSslMode};
 use sqlx::ConnectOptions;
-use std::convert::{TryFrom, TryInto};
 
 // All this seems a bit much rather than just using a few environment variables.
 
@@ -69,10 +71,11 @@ pub struct PaperclipSettings {
 
 #[derive(serde::Deserialize, Clone)]
 pub struct Settings {
-    pub database: DatabaseSettings,
     pub application: ApplicationSettings,
-    pub rpc: RPCSettings,
+    pub database: DatabaseSettings,
     pub indexer: IndexerSettings,
+    pub redis_url: Secret<String>,
+    pub rpc: RPCSettings,
 }
 
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {
