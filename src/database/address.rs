@@ -1,6 +1,10 @@
 use anyhow::Result;
-use ethers::{prelude::*, abi::AbiEncode};
-use sqlx::{Postgres, postgres::{PgQueryResult, PgArguments}, PgPool, PgExecutor, query::Query};
+use ethers::{abi::AbiEncode, prelude::*};
+use sqlx::{
+    postgres::{PgArguments, PgQueryResult},
+    query::Query,
+    PgExecutor, PgPool, Postgres,
+};
 
 use super::InsertOnlyQuery;
 

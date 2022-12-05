@@ -7,8 +7,8 @@ use ethers::{abi::AbiEncode, prelude::*};
 use http::StatusCode;
 use sqlx::PgPool;
 
-use crate::{bindings::seaport::Seaport, database::save_address};
 use crate::structs::OrderInput;
+use crate::{bindings::seaport::Seaport, database::save_address};
 
 pub async fn seaport_legacy_create_listing(
     State(db_pool): State<PgPool>,
@@ -44,19 +44,19 @@ pub async fn insert_listing(
         e
     })?;
     save_address(new_listing.parameters.offerer)
-    .execute(&mut tx)
-    .await
-    .map_err(|e| {
-        tracing::error!("Failed to execute query: {:?}", e);
-        e
-    })?;
+        .execute(&mut tx)
+        .await
+        .map_err(|e| {
+            tracing::error!("Failed to execute query: {:?}", e);
+            e
+        })?;
     save_address(new_listing.parameters.zone)
-    .execute(&mut tx)
-    .await
-    .map_err(|e| {
-        tracing::error!("Failed to execute query: {:?}", e);
-        e
-    })?;
+        .execute(&mut tx)
+        .await
+        .map_err(|e| {
+            tracing::error!("Failed to execute query: {:?}", e);
+            e
+        })?;
     sqlx::query!(
         r#"
             INSERT INTO orders (
@@ -98,12 +98,12 @@ pub async fn insert_listing(
     let mut position = 0;
     for offer in &new_listing.parameters.offer {
         save_address(offer.token)
-        .execute(&mut tx)
-        .await
-        .map_err(|e| {
-            tracing::error!("Failed to execute query: {:?}", e);
-            e
-        })?;
+            .execute(&mut tx)
+            .await
+            .map_err(|e| {
+                tracing::error!("Failed to execute query: {:?}", e);
+                e
+            })?;
 
         // Insert offer item
         sqlx::query!(
@@ -139,19 +139,19 @@ pub async fn insert_listing(
     position = 0;
     for consideration in &new_listing.parameters.consideration {
         save_address(consideration.token)
-        .execute(&mut tx)
-        .await
-        .map_err(|e| {
-            tracing::error!("Failed to execute query: {:?}", e);
-            e
-        })?;
+            .execute(&mut tx)
+            .await
+            .map_err(|e| {
+                tracing::error!("Failed to execute query: {:?}", e);
+                e
+            })?;
         save_address(consideration.recipient)
-        .execute(&mut tx)
-        .await
-        .map_err(|e| {
-            tracing::error!("Failed to execute query: {:?}", e);
-            e
-        })?;
+            .execute(&mut tx)
+            .await
+            .map_err(|e| {
+                tracing::error!("Failed to execute query: {:?}", e);
+                e
+            })?;
 
         sqlx::query!(
             r#"
