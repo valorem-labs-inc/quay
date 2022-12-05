@@ -1,20 +1,30 @@
 syntax = "proto3";
-package quote;
+
+import "types.proto";
+import "seaport.proto";
+
+package proto;
+
+// Reference: https://github.com/valorem-labs-inc/valorem-core/blob/master/src/interfaces/IOptionSettlementEngine.sol#L223
 
 service Quote {
     rpc Quote (QuoteRequest) returns (QuoteResponse);
 }
 
 message QuoteRequest {
-  string url = 1;
+    uint64 messageId = 1;
+    string traderAddress = 2;
 
-    enum Vote {
-        UP = 0;
-        DOWN = 1;
-    }
-    Vote vote = 2;
+    string underlyingAsset = 3;
+    H96 underlyingAmount = 4;
+    string exerciseAsset = 5;
+    H96 exerciseAmount = 6;
+    H40 exerciseTimestamp = 7;
+    H40 expiryTimestamp = 8;
 }
 
 message QuoteResponse {
-    string confirmation = 1;
+    uint64 messageId = 1;
+    string traderAddress = 2;
+    Order order = 3;
 }

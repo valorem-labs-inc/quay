@@ -1,0 +1,31 @@
+// Partially from: https://github.com/ledgerwatch/interfaces/blob/master/types/types.proto
+syntax = "proto3";
+
+package proto;
+
+message H40 {
+    uint32 hi = 1;
+    // Note: lo is really a uint8, however the closest type in Protocol Buffers is uint32. Parsing needs
+    //       to take this into consideration.
+    uint32 lo = 2;
+}
+
+message H96 {
+    uint64 hi = 1;
+    uint32 lo = 2;
+}
+
+message H128 {
+  uint64 hi = 1;
+  uint64 lo = 2;
+}
+
+message H160 {
+  H128 hi = 1;
+  uint32 lo = 2;
+}
+
+message H256 {
+  H128 hi = 1;
+  H128 lo = 2;
+}

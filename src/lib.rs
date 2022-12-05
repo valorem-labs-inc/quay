@@ -3,6 +3,11 @@ pub mod configuration;
 pub mod indexer;
 pub mod middleware;
 pub mod redis;
+
+pub mod rfq {
+    tonic::include_proto!("quote");
+}
+
 pub mod routes;
 pub mod services;
 pub mod startup;

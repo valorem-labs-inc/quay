@@ -105,7 +105,7 @@ pub fn run(
         .boxed_clone();
 
     let grpc = Server::builder()
-        .add_service(RequestForQuoteServer::new(MyRFQ::default()))
+        .add_service(QuoteServer::new(RFQService::default()))
         .into_service()
         .map_response(|r| r.map(axum::body::boxed))
         .boxed_clone();
