@@ -2,7 +2,7 @@ use std::fmt::{Debug, Formatter};
 
 use axum_sessions::async_session::{async_trait, serde_json, Result, Session, SessionStore};
 use redis::aio::ConnectionManager;
-use redis::AsyncCommands;
+use redis::{Client, Cmd, FromRedisValue, RedisResult};
 
 /// This redis session store uses a multiplexed connection to redis with an auto-reconnect feature.
 /// # RedisSessionStore
@@ -16,6 +16,20 @@ pub struct RedisSessionStore {
 }
 
 impl RedisSessionStore {
+    /// Creates a new `RedisSessionStore` from a redis uri string.
+    pub async fn from_uri(uri: &str, prefix: Option<String>) -> RedisResult<Self> {
+        let connection = ConnectionManager::new(Client::open(uri).unwrap()).await?;
+        Ok(Self { connection, prefix })
+    }
+
+    /// Creates a new `RedisSessionStore` from a `redis::Client`.
+    pub async fn from_client(client: redis::Client, prefix: Option<String>) -> RedisResult<Self> {
+        Ok(Self {
+            connection: client.get_tokio_connection_manager().await?,
+            prefix,
+        })
+    }
+
     /// Constructs a new `RedisSessionStore` instance.
     ///
     /// # Arguments
@@ -38,15 +52,15 @@ impl RedisSessionStore {
 
     /// Returns the session keys in Redis that match the prefix.
     async fn ids(&self) -> Result<Vec<String>> {
-        Ok(self.connection.clone().keys(self.prefix_key("*")).await?)
+        Ok(self
+            .execute_command(&mut Cmd::keys(self.prefix_key("*")))
+            .await?)
     }
 
     /// Returns the number of sessions in this store.
     pub async fn count(&self) -> Result<usize> {
         if self.prefix.is_none() {
-            Ok(redis::cmd("DBSIZE")
-                .query_async(&mut self.connection.clone())
-                .await?)
+            Ok(self.execute_command(&mut redis::cmd("DBSIZE")).await?)
         } else {
             Ok(self.ids().await?.len())
         }
@@ -56,9 +70,7 @@ impl RedisSessionStore {
     #[cfg(test)]
     async fn ttl_for_session(&self, session: &Session) -> Result<usize> {
         Ok(self
-            .connection
-            .clone()
-            .ttl(self.prefix_key(session.id()))
+            .execute_command(&mut Cmd::ttl(self.prefix_key(&session.id())))
             .await?)
     }
 
@@ -68,6 +80,43 @@ impl RedisSessionStore {
             format!("{}{}", prefix, key.as_ref())
         } else {
             key.as_ref().into()
+        }
+    }
+
+    /// Execute Redis command and retry once in certain cases.
+    ///
+    /// `ConnectionManager` automatically reconnects when it encounters an error talking to Redis.
+    /// The request that bumped into the error, though, fails.
+    ///
+    /// This is generally OK, but there is an unpleasant edge case: Redis client timeouts. The
+    /// server is configured to drop connections who have been active longer than a pre-determined
+    /// threshold. `redis-rs` does not proactively detect that the connection has been dropped - you
+    /// only find out when you try to use it.
+    ///
+    /// This helper method catches this case (`.is_connection_dropped`) to execute a retry. The
+    /// retry will be executed on a fresh connection, therefore it is likely to succeed (or fail for
+    /// a different more meaningful reason).
+    async fn execute_command<T: FromRedisValue>(&self, cmd: &mut Cmd) -> RedisResult<T> {
+        let mut can_retry = true;
+
+        loop {
+            match cmd.query_async(&mut self.connection.clone()).await {
+                Ok(value) => return Ok(value),
+                Err(err) => {
+                    if can_retry && err.is_connection_dropped() {
+                        tracing::debug!(
+                            "Connection dropped while trying to talk to Redis. Retrying."
+                        );
+
+                        // Retry at most once
+                        can_retry = false;
+
+                        continue;
+                    } else {
+                        return Err(err);
+                    }
+                }
+            }
         }
     }
 }
@@ -97,7 +146,9 @@ impl SessionStore for RedisSessionStore {
         let id = Session::id_from_cookie_value(&cookie_value)?;
 
         // Attempt to get the session data from Redis.
-        let record: Option<String> = self.connection.clone().get(self.prefix_key(id)).await?;
+        let record: Option<String> = self
+            .execute_command(&mut Cmd::get(self.prefix_key(id)))
+            .await?;
 
         // If a session was found, deserialize it and return it. Otherwise, return `None`.
         match record {
@@ -123,11 +174,9 @@ impl SessionStore for RedisSessionStore {
 
         // Set the session in Redis with the appropriate expiry time.
         match session.expires_in() {
-            None => self.connection.clone().set(id, string).await?,
+            None => self.execute_command(&mut Cmd::set(id, string)).await?,
             Some(expiry) => {
-                self.connection
-                    .clone()
-                    .set_ex(id, string, expiry.as_secs() as usize)
+                self.execute_command(&mut Cmd::set_ex(id, string, expiry.as_secs() as usize))
                     .await?
             }
         };
@@ -149,7 +198,7 @@ impl SessionStore for RedisSessionStore {
         // Get the session id with the prefix applied.
         let key = self.prefix_key(session.id());
         // Delete the session from Redis.
-        self.connection.clone().del(key).await?;
+        self.execute_command(&mut Cmd::del(key)).await?;
         Ok(())
     }
 
@@ -159,13 +208,11 @@ impl SessionStore for RedisSessionStore {
     /// Otherwise, it will only clear the sessions with the specified prefix.
     async fn clear_store(&self) -> Result {
         if self.prefix.is_none() {
-            let _: () = redis::cmd("FLUSHDB")
-                .query_async(&mut self.connection.clone())
-                .await?;
+            let _: () = self.execute_command(&mut redis::cmd("FLUSHDB")).await?;
         } else {
             let ids = self.ids().await?;
             if !ids.is_empty() {
-                self.connection.clone().del(ids).await?;
+                self.execute_command(&mut Cmd::del(ids)).await?;
             }
         }
         Ok(())
@@ -180,11 +227,10 @@ mod tests {
     use super::*;
 
     async fn test_store() -> RedisSessionStore {
-        let client = Client::open("redis://127.0.0.1").unwrap();
-        let store = RedisSessionStore::new(
-            ConnectionManager::new(client).await.unwrap(),
-            Some(ulid::Ulid::new().to_string()),
-        );
+        let store =
+            RedisSessionStore::from_uri("redis://127.0.0.1", Some(ulid::Ulid::new().to_string()))
+                .await
+                .unwrap();
         store.clear_store().await.unwrap();
         store
     }
