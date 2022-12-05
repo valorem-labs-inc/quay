@@ -7,7 +7,7 @@ pub mod request_for_quote {
 }
 
 pub mod middleware;
-pub mod redis;
+pub mod redis_pool;
 pub mod routes;
 pub mod services;
 pub mod startup;
