@@ -93,6 +93,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "async-redis-session"
+version = "0.2.2"
+source = "git+https://github.com/0xAlcibiades/async-redis-session.git?branch=tokio#3dfd050b3c8eac5050e972bc8fd2ff2551c99cda"
+dependencies = [
+ "async-session",
+ "redis",
+]
+
+[[package]]
 name = "async-session"
 version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2561,6 +2570,7 @@ name = "quay"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-redis-session",
  "async-trait",
  "axum",
  "axum-macros",

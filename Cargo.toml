@@ -9,6 +9,7 @@ path = "src/lib.rs"
 
 [dependencies]
 anyhow = "1.0.66"
+async-redis-session = { git = "https://github.com/0xAlcibiades/async-redis-session.git", branch = "tokio" }
 async-trait = "0.1.59"
 axum = { version = "0.6.1", features = ["http2", "query"] }
 axum-macros = "0.3.0"
