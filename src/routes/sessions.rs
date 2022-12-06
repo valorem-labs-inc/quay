@@ -3,9 +3,8 @@ use axum_sessions::extractors::WritableSession;
 use http::{header, HeaderMap, StatusCode};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-const NONCE_KEY: &'static str = "nonce";
-const EXPIRATION_TIME_KEY: &'static str = "expirationTime";
-const USER_ADDRESS_KEY: &'static str = "userAddress";
+const NONCE_KEY: &str = "nonce";
+const EXPIRATION_TIME_KEY: &str = "expirationTime";
 
 fn unix_timestamp() -> Result<u64, anyhow::Error> {
     Ok(SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs())
