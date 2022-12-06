@@ -1,3 +1,4 @@
+pub mod auth;
 pub mod bindings;
 pub mod configuration;
 pub mod database;

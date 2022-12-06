@@ -3,22 +3,36 @@ use axum::{
     extract::{Json, State},
     response::IntoResponse,
 };
+use axum_sessions::extractors::ReadableSession;
 use ethers::prelude::*;
 use http::StatusCode;
 use sqlx::PgPool;
 
+use crate::auth::verify_session;
 use crate::{
     bindings::seaport::Seaport,
     database::{save_address, save_consideration, save_offer},
 };
 use crate::{database::save_order, structs::OrderInput};
 
+#[tracing::instrument(
+name = "Adding a new listing",
+skip(db_pool, seaport, session, listing),
+fields(
+offerer = %listing.parameters.offerer,
+)
+)]
 pub async fn create_listing(
+    session: ReadableSession,
     State(db_pool): State<PgPool>,
     State(seaport): State<Seaport<Provider<Http>>>,
     Json(listing): Json<OrderInput>,
 ) -> impl IntoResponse {
-    // TODO(Pass authenticated user details for verification in order)
+    let authenticated = verify_session(&session).await.into_response();
+    if authenticated.status() != StatusCode::OK {
+        return authenticated;
+    }
+
     if insert_listing(&db_pool, &listing, &seaport).await.is_err() {
         return (StatusCode::INTERNAL_SERVER_ERROR).into_response();
     }
@@ -26,6 +40,10 @@ pub async fn create_listing(
     (StatusCode::OK).into_response()
 }
 
+#[tracing::instrument(
+    name = "Saving new listing details in the database",
+    skip(new_listing, pool, seaport)
+)]
 pub async fn insert_listing(
     pool: &PgPool,
     new_listing: &OrderInput,
