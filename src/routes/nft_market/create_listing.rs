@@ -29,7 +29,7 @@ pub async fn create_listing(
     Json(listing): Json<OrderInput>,
 ) -> impl IntoResponse {
     let authenticated = verify_session(&session).await.into_response();
-    if !(authenticated.status() == StatusCode::OK) {
+    if authenticated.status() != StatusCode::OK {
         return authenticated;
     }
 
