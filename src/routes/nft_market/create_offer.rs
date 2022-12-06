@@ -13,20 +13,20 @@ use crate::{
     database::{save_address, save_consideration, save_offer, save_order},
 };
 
-pub async fn seaport_legacy_create_offer(
+pub async fn create_offer(
     State(db_pool): State<PgPool>,
     State(seaport): State<Seaport<Provider<Http>>>,
     Json(offer): Json<OrderInput>,
 ) -> impl IntoResponse {
     // TODO(Pass authenticated user details for verification in order)
-    if insert_offer(&db_pool, &offer, &seaport).await.is_err() {
+    if insert_offer_db(&db_pool, &offer, &seaport).await.is_err() {
         return (StatusCode::INTERNAL_SERVER_ERROR).into_response();
     }
 
     (StatusCode::OK).into_response()
 }
 
-pub async fn insert_offer(
+pub async fn insert_offer_db(
     pool: &PgPool,
     new_offer: &OrderInput,
     seaport: &Seaport<Provider<Http>>,

@@ -2,18 +2,21 @@ use std::net::TcpListener;
 use std::str::FromStr;
 use std::sync::Arc;
 
+use async_redis_session::RedisSessionStore;
 use axum::{
     middleware,
     routing::{get, post},
     Router,
 };
 use axum_server::Handle;
+use axum_sessions::SessionLayer;
 use bb8::Pool;
 use ethers::prelude::*;
 use futures::future::BoxFuture;
 use futures::FutureExt;
 use http::{header::CONTENT_TYPE, Request};
 use hyper::Body;
+use redis::aio::ConnectionManager;
 use secrecy::ExposeSecret;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
@@ -43,6 +46,7 @@ pub fn run(
     listener: TcpListener,
     db_pool: PgPool,
     redis_pool: Pool<RedisConnectionManager>,
+    redis_multiplexed: ConnectionManager,
     rpc: Provider<Http>,
 ) -> BoxFuture<'static, Result<(), std::io::Error>> {
     let provider = Arc::new(rpc.clone());
@@ -54,9 +58,15 @@ pub fn run(
 
     let cors = CorsLayer::very_permissive();
 
+    let store = RedisSessionStore::new(redis_multiplexed.clone(), Some("/sessions".into()));
+    let secret =
+        b"000000000006c3852cbEf3e08E8dF289169EdE581000000000006c3852cbEf3e08E8dF289169EdE581"; // MUST be at least 64 bytes!
+    let session_layer = SessionLayer::new(store, secret);
+
     let state = AppState {
         db_pool,
         redis_pool,
+        redis_multiplexed,
         rpc,
         seaport,
     };
@@ -66,26 +76,13 @@ pub fn run(
         .route("/", get(|| async { "Hello, world!" }))
         .route("/health_check", get(health_check))
         .route("/metrics/prometheus", get(metrics_prometheus))
-        .route(
-            "/seaport/legacy/listings",
-            post(seaport_legacy_create_listing).get(seaport_legacy_retrieve_listings),
-        )
-        .route(
-            "/seaport/legacy/offers",
-            post(seaport_legacy_create_offer).get(seaport_legacy_retrieve_offers),
-        )
-        // Legacy endpoints to keep compatibility
-        .route(
-            "/listings",
-            post(seaport_legacy_create_listing).get(seaport_legacy_retrieve_listings),
-        )
-        .route(
-            "/offers",
-            post(seaport_legacy_create_offer).get(seaport_legacy_retrieve_offers),
-        )
+        .route("/listings", post(create_listing).get(retrieve_listings))
+        .route("/offers", post(create_offer).get(retrieve_offers))
+        .route("/nonce", get(get_nonce))
         // Layers/middleware
         .layer(TraceLayer::new_for_http().make_span_with(TowerMakeSpanWithConstantId))
         .layer(RequestIdLayer)
+        .layer(session_layer)
         .layer(middleware::from_fn(track_prometheus_metrics))
         .layer(cors)
         // State
@@ -133,6 +130,10 @@ impl Application {
                 configuration.redis_url.expose_secret().as_str(),
             )?)
             .await?;
+        let redis_multiplexed = ConnectionManager::new(redis::Client::open(
+            configuration.redis_url.expose_secret().as_str(),
+        )?)
+        .await?;
 
         let provider: Provider<Http> =
             Provider::new(Http::from_str(configuration.rpc.uri.as_str()).unwrap());
@@ -145,7 +146,7 @@ impl Application {
         let listener = TcpListener::bind(&address)?;
         let port = listener.local_addr().unwrap().port();
 
-        let server = run(listener, db_pool, redis_pool, provider);
+        let server = run(listener, db_pool, redis_pool, redis_multiplexed, provider);
 
         Ok(Self { server, port })
     }

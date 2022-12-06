@@ -3191,6 +3191,7 @@ dependencies = [
  "iri-string",
  "k256",
  "rand",
+ "serde",
  "sha3",
  "thiserror",
  "time 0.3.17",

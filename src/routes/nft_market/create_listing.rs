@@ -13,7 +13,7 @@ use crate::{
 };
 use crate::{database::save_order, structs::OrderInput};
 
-pub async fn seaport_legacy_create_listing(
+pub async fn create_listing(
     State(db_pool): State<PgPool>,
     State(seaport): State<Seaport<Provider<Http>>>,
     Json(listing): Json<OrderInput>,
