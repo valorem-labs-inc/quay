@@ -2570,6 +2570,7 @@ name = "quay"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "arrayref",
  "async-redis-session",
  "async-trait",
  "axum",

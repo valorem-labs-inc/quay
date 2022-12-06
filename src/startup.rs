@@ -1,6 +1,3 @@
-use std::net::TcpListener;
-use std::str::FromStr;
-use std::sync::Arc;
 use axum::{
     middleware,
     routing::{get, post},
@@ -16,6 +13,9 @@ use hyper::Body;
 use secrecy::ExposeSecret;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
+use std::net::TcpListener;
+use std::str::FromStr;
+use std::sync::Arc;
 use tonic::transport::Server;
 use tower::{make::Shared, steer::Steer, BoxError, ServiceExt};
 use tower_http::cors::CorsLayer;
@@ -25,10 +25,10 @@ use tracing::error_span;
 use crate::configuration::{DatabaseSettings, Settings};
 use crate::middleware::{track_prometheus_metrics, RequestId, RequestIdLayer};
 use crate::redis_pool::RedisConnectionManager;
+use crate::rfq::trader_server::TraderServer;
 use crate::routes::*;
 use crate::services::*;
 use crate::{bindings::Seaport, state::AppState};
-use crate::rfq::trader_server::TraderServer;
 
 pub fn get_connection_pool(configuration: &DatabaseSettings) -> PgPool {
     PgPoolOptions::new()
@@ -108,7 +108,7 @@ pub fn run(
 
     println!("Starting gRPC");
     let grpc = Server::builder()
-        .add_service(TraderServer::new(RFQService {} ))
+        .add_service(TraderServer::new(RFQService {}))
         .into_service()
         .map_response(|r| r.map(axum::body::boxed))
         .boxed_clone();
