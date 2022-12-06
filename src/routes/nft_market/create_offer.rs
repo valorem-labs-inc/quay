@@ -3,6 +3,7 @@ use axum::{
     extract::{Json, State},
     response::IntoResponse,
 };
+use axum_sessions::extractors::ReadableSession;
 use ethers::prelude::*;
 use http::StatusCode;
 use sqlx::PgPool;
@@ -12,13 +13,23 @@ use crate::{
     bindings::seaport::Seaport,
     database::{save_address, save_consideration, save_offer, save_order},
 };
+use crate::auth::verify_session;
 
+#[tracing::instrument(
+name = "Adding a new offer",
+skip(session, offer, db_pool, seaport),
+fields(
+offerer = %offer.parameters.offerer,
+)
+)]
 pub async fn create_offer(
+    session: ReadableSession,
     State(db_pool): State<PgPool>,
     State(seaport): State<Seaport<Provider<Http>>>,
     Json(offer): Json<OrderInput>,
 ) -> impl IntoResponse {
-    // TODO(Pass authenticated user details for verification in order)
+    //let authenticated = verify_session(&session).await;
+
     if insert_offer_db(&db_pool, &offer, &seaport).await.is_err() {
         return (StatusCode::INTERNAL_SERVER_ERROR).into_response();
     }

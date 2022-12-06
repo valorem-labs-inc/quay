@@ -80,7 +80,7 @@ pub fn run(
         // Layers/middleware
         .layer(TraceLayer::new_for_http().make_span_with(TowerMakeSpanWithConstantId))
         .layer(RequestIdLayer)
-        .layer(session_layer.clone())
+        .layer(session_layer)
         .layer(middleware::from_fn(track_prometheus_metrics))
         .layer(cors)
         // State
@@ -91,7 +91,6 @@ pub fn run(
     let grpc = Server::builder()
         .layer(RequestIdLayer)
         .layer(TraceLayer::new_for_http().make_span_with(TowerMakeSpanWithConstantId))
-        .layer(session_layer)
         .add_service(QuoteServer::new(RFQService::default()))
         .into_service()
         .map_response(|r| r.map(axum::body::boxed))

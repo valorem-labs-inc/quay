@@ -11,6 +11,7 @@ pub mod state;
 pub mod structs;
 pub mod telemetry;
 pub mod utils;
+pub mod auth;
 
 pub mod rfq {
     #![allow(clippy::derive_partial_eq_without_eq)]

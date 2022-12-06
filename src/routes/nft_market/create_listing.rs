@@ -13,6 +13,13 @@ use crate::{
 };
 use crate::{database::save_order, structs::OrderInput};
 
+#[tracing::instrument(
+name = "Adding a new listing",
+skip(db_pool, seaport, listing),
+fields(
+offerer = %listing.parameters.offerer,
+)
+)]
 pub async fn create_listing(
     State(db_pool): State<PgPool>,
     State(seaport): State<Seaport<Provider<Http>>>,
@@ -26,6 +33,10 @@ pub async fn create_listing(
     (StatusCode::OK).into_response()
 }
 
+#[tracing::instrument(
+name = "Saving new listing details in the database",
+skip(new_listing, pool, seaport)
+)]
 pub async fn insert_listing(
     pool: &PgPool,
     new_listing: &OrderInput,

@@ -8,52 +8,7 @@ use ethers::types::Address;
 use http::{header, HeaderMap, StatusCode};
 use serde::{Deserialize, Serialize};
 use siwe::{Message, VerificationOpts};
-
-const NONCE_KEY: &str = "nonce";
-const EXPIRATION_TIME_KEY: &str = "expirationTime";
-const USER_ADDRESS_KEY: &str = "userAddress";
-
-fn unix_timestamp() -> Result<u64, anyhow::Error> {
-    Ok(SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs())
-}
-
-// EIP-4361 based session
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct SignedMessage {
-    pub signature: Signature,
-    pub message: Message,
-}
-
-pub async fn verify_session(session: &ReadableSession) -> impl IntoResponse {
-    match session.get::<String>(NONCE_KEY) {
-        Some(_) => {}
-        // Invalid nonce
-        None => return (StatusCode::UNAUTHORIZED, "Failed to get nonce").into_response(),
-    }
-    let now = match unix_timestamp() {
-        Ok(now) => now,
-        Err(_) => {
-            return (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "Failed to get unix timestamp.",
-            )
-                .into_response()
-        }
-    };
-    match session.get::<u64>(EXPIRATION_TIME_KEY) {
-        None => {
-            return (StatusCode::UNAUTHORIZED, "Failed to get session expiration").into_response()
-        }
-        Some(ts) => {
-            if now > ts {
-                return (StatusCode::UNAUTHORIZED, "Session expired").into_response();
-            }
-        }
-    }
-
-    StatusCode::OK.into_response()
-}
+use crate::auth::*;
 
 #[tracing::instrument(name = "Getting an EIP-4361 nonce for session", skip(session))]
 pub async fn get_nonce(mut session: WritableSession) -> impl IntoResponse {
