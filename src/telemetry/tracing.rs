@@ -1,9 +1,13 @@
+use http::Request;
+use tower_http::trace::MakeSpan;
 use tracing::subscriber::set_global_default;
-use tracing::Subscriber;
+use tracing::{error_span, Span, Subscriber};
 use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
 use tracing_log::LogTracer;
 use tracing_subscriber::fmt::MakeWriter;
 use tracing_subscriber::{layer::SubscriberExt, EnvFilter, Registry};
+
+use crate::middleware::RequestId;
 
 /// Compose multiple layers into a `tracing`'s subscriber.
 ///
@@ -25,6 +29,7 @@ where
 {
     let env_filter =
         EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(env_filter));
+
     let formatting_layer = BunyanFormattingLayer::new(name, sink);
     Registry::default()
         .with(env_filter)
@@ -38,4 +43,23 @@ where
 pub fn init_subscriber(subscriber: impl Subscriber + Send + Sync) {
     LogTracer::init().expect("Failed to set logger");
     set_global_default(subscriber).expect("Failed to set subscriber");
+}
+
+#[derive(Clone, Copy)]
+pub(crate) struct TowerMakeSpanWithConstantId;
+
+impl<B> MakeSpan<B> for TowerMakeSpanWithConstantId {
+    fn make_span(&mut self, request: &Request<B>) -> Span {
+        let request_id = request
+            .extensions()
+            .get::<RequestId>()
+            .map(ToString::to_string)
+            .unwrap_or_else(|| "unknown".into());
+        error_span!(
+            "request",
+            id = %request_id,
+            method = %request.method(),
+            uri = %request.uri(),
+        )
+    }
 }

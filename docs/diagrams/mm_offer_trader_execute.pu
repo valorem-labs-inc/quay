@@ -1,0 +1,40 @@
+@startuml
+
+actor Trader
+box Valorem #LightGreen
+participant Quay
+end box
+actor "Market Maker" as MM
+box Valorem #LightBlue
+participant SettlementEngine as SE
+end box
+
+== Case: Market Maker Offer, Trader executes ==
+autonumber
+Trader -> Quay: Request for Quote\nWebsockets: RFQ
+note right
+RFQ JSON structure
+end note
+Quay -> MM: Request for Quote\nWebsockets: RFQ
+note right
+RFQ JSON structure
+end note
+MM -> Quay: HTTP POST: <url>/offers
+note right #red
+**bid**
+end note
+MM -> Quay: Reply\nWebsockets: Reply
+note right
+Reply JSON structure
+end note
+MM -> SE: <<Async>> on-chain: write
+Quay --> Quay: Search offers
+Quay -> Trader: Offer
+hnote over Trader #lightBlue
+[Start of exercise window]
+end hnote
+Trader -> SE: on-chain: exercise
+hnote over Trader #lightBlue
+[ End of exercise window ]
+end hnote
+@enduml

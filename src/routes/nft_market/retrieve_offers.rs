@@ -1,23 +1,20 @@
-use crate::structs::{DBConsideration, DBOffer, DBOrder, OrderQuery, RetrieveResponse};
-use actix_web::{get, web, HttpResponse, Responder};
 use anyhow::Error;
-use ethers::{abi::AbiEncode, types::U256};
+use axum::{
+    extract::{Query, State},
+    response::IntoResponse,
+    Json,
+};
+use ethers::{abi::AbiEncode, prelude::*};
+use http::StatusCode;
 use sqlx::{query_as, PgPool};
 
-// Cleanroom rewrite of: https://docs.opensea.io/v2.0/reference/retrieve-listings
+use crate::structs::{DBConsideration, DBOffer, DBOrder, OrderQuery, RetrieveResponse};
 
-#[get("/listings")]
-#[tracing::instrument(
-name = "Fetching listings matching the passed tokenIds",
-skip(query, pool),
-fields(
-asset_contract_address = query.asset_contract_address.encode_hex(),
-token_ids = query.token_ids.join(","),
-limit = %query.limit.unwrap_or(1),
-)
-)]
-async fn listings(query: web::Query<OrderQuery>, pool: web::Data<PgPool>) -> impl Responder {
-    match retrieve_listings(
+pub async fn retrieve_offers(
+    State(pool): State<PgPool>,
+    query: Query<OrderQuery>,
+) -> impl IntoResponse {
+    match retrieve_offers_db(
         &pool,
         query.asset_contract_address.encode_hex(),
         query
@@ -36,16 +33,14 @@ async fn listings(query: web::Query<OrderQuery>, pool: web::Data<PgPool>) -> imp
     )
     .await
     {
-        Ok(retrieved_listings) => HttpResponse::Ok().json(retrieved_listings),
-        _ => HttpResponse::InternalServerError().finish(),
+        Ok(retrieved_listings) => {
+            (StatusCode::OK, Json::<RetrieveResponse>(retrieved_listings)).into_response()
+        }
+        _ => (StatusCode::INTERNAL_SERVER_ERROR).into_response(),
     }
 }
 
-#[tracing::instrument(
-    name = "Fetching listings matching the passed token_ids from the database",
-    skip(pool, asset_contract_address, token_ids, limit)
-)]
-async fn retrieve_listings(
+async fn retrieve_offers_db(
     pool: &PgPool,
     asset_contract_address: String,
     token_ids: &[String],
@@ -57,8 +52,8 @@ async fn retrieve_listings(
         r#"
             SELECT
                 O.hash as "hash!",
-                O.offerer as "offerer!",
-                O.zone as "zone!",
+                O.offerer::TEXT as "offerer!",
+                O.zone::TEXT as "zone!",
                 O.zone_hash as "zone_hash!",
                 O.start_time as "start_time!",
                 O.end_time as "end_time!",
@@ -71,16 +66,16 @@ async fn retrieve_listings(
                 array_agg(DISTINCT (
                     OC.position,
                     OC.item_type,
-                    OC.token,
+                    OC.token::TEXT,
                     OC.identifier_or_criteria,
                     OC.start_amount,
                     OC.end_amount,
-                    OC.recipient
+                    OC.recipient::TEXT
                 )) AS "considerations!: Vec<DBConsideration>",
                 array_agg(DISTINCT (
                     OOF.position,
                     OOF.item_type,
-                    OOF.token,
+                    OOF.token::TEXT,
                     OOF.identifier_or_criteria,
                     OOF.start_amount,
                     OOF.end_amount
@@ -89,11 +84,11 @@ async fn retrieve_listings(
                 INNER JOIN considerations OC ON O.hash = OC.order
                 INNER JOIN offers OOF ON O.hash = OOF.order
             WHERE O.hash IN (
-                SELECT OF.order FROM offers OF
-                    WHERE (OF.token = $1 OR $1 = '0x0000000000000000000000000000000000000000000000000000000000000000')
-                    AND (OF.identifier_or_criteria = ANY($2::TEXT[]) OR cardinality($2::TEXT[]) = 0)
+                SELECT C.order FROM considerations C 
+                    WHERE (C.token = $1::TEXT::citext OR $1::TEXT::citext = '0x0000000000000000000000000000000000000000000000000000000000000000')
+                    AND (C.identifier_or_criteria = ANY($2::TEXT[]) OR cardinality($2::TEXT[]) = 0)
             )
-            AND (O.offerer = $3 OR $3 = '0x0000000000000000000000000000000000000000000000000000000000000000')
+            AND (O.offerer = $3::TEXT::citext OR $3::TEXT::citext = '0x0000000000000000000000000000000000000000000000000000000000000000')
             GROUP BY O.hash
             LIMIT $4;
         "#,

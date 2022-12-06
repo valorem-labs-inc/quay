@@ -1,60 +1,6 @@
 {
   "db": "PostgreSQL",
-  "138a4848aedc1fa89e7eca53bd44de3f9a9b1c0fcf1e157c4db61cd766c138da": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Int4",
-          "Text",
-          "Int4",
-          "Text",
-          "Text",
-          "Text",
-          "Text",
-          "Text"
-        ]
-      }
-    },
-    "query": "INSERT INTO considerations (position, \"order\", item_type, token, identifier_or_criteria, start_amount, end_amount, recipient) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (position, \"order\") DO NOTHING"
-  },
-  "5098a399145ec16d743494db524a629d0af97043c2ff9f69ccd2cbe975f266f0": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Text",
-          "Text",
-          "Text",
-          "Text",
-          "Int8",
-          "Int8",
-          "Int4",
-          "Int4",
-          "Int8",
-          "Text",
-          "Text",
-          "Text"
-        ]
-      }
-    },
-    "query": "INSERT INTO orders (hash, offerer, zone, zone_hash, start_time, end_time,\n        order_type, total_original_consideration_items, counter, salt, conduit_key, signature)\n        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) ON CONFLICT (hash) DO NOTHING"
-  },
-  "52e41630c675d276ce44b4926d6a36772e1bcc42a8aa4107fb97e29df29ebc6b": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Text"
-        ]
-      }
-    },
-    "query": "INSERT INTO addresses (address) VALUES ($1) ON CONFLICT (address) DO NOTHING"
-  },
-  "81dd75973c93b8fba03010d58cc5dac0b2c54899859794e2aa33a3ba773a2df0": {
+  "180037a9710afd6b9d325c5ffadccb76a077a1187cc8b325da6557b3a7375d7e": {
     "describe": {
       "columns": [],
       "nullable": [],
@@ -65,7 +11,193 @@
         ]
       }
     },
-    "query": "UPDATE orders SET cancelled = true WHERE offerer = $1 AND counter < $2"
+    "query": "UPDATE orders SET cancelled = true WHERE offerer = $1::TEXT::citext AND counter < $2"
+  },
+  "248bbdcbea951c2ef2d2b297e0fb8a5f8dd33a0ac91c4a94dfed7d004872fb23": {
+    "describe": {
+      "columns": [
+        {
+          "name": "hash!",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "offerer!",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "zone!",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "zone_hash!",
+          "ordinal": 3,
+          "type_info": "Text"
+        },
+        {
+          "name": "start_time!",
+          "ordinal": 4,
+          "type_info": "Int8"
+        },
+        {
+          "name": "end_time!",
+          "ordinal": 5,
+          "type_info": "Int8"
+        },
+        {
+          "name": "order_type!",
+          "ordinal": 6,
+          "type_info": "Int4"
+        },
+        {
+          "name": "total_original_consideration_items!",
+          "ordinal": 7,
+          "type_info": "Int4"
+        },
+        {
+          "name": "counter!",
+          "ordinal": 8,
+          "type_info": "Int8"
+        },
+        {
+          "name": "salt!",
+          "ordinal": 9,
+          "type_info": "Text"
+        },
+        {
+          "name": "conduit_key!",
+          "ordinal": 10,
+          "type_info": "Text"
+        },
+        {
+          "name": "signature!",
+          "ordinal": 11,
+          "type_info": "Text"
+        },
+        {
+          "name": "considerations!: Vec<DBConsideration>",
+          "ordinal": 12,
+          "type_info": "RecordArray"
+        },
+        {
+          "name": "offers!: Vec<DBOffer>",
+          "ordinal": 13,
+          "type_info": "RecordArray"
+        }
+      ],
+      "nullable": [
+        false,
+        null,
+        null,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        null,
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "TextArray",
+          "Text",
+          "Int8"
+        ]
+      }
+    },
+    "query": "\n            SELECT\n                O.hash as \"hash!\",\n                O.offerer::TEXT as \"offerer!\",\n                O.zone::TEXT as \"zone!\",\n                O.zone_hash as \"zone_hash!\",\n                O.start_time as \"start_time!\",\n                O.end_time as \"end_time!\",\n                O.order_type as \"order_type!\",\n                O.total_original_consideration_items as \"total_original_consideration_items!\",\n                O.counter as \"counter!\",\n                O.salt as \"salt!\",\n                O.conduit_key as \"conduit_key!\",\n                O.signature as \"signature!\",\n                array_agg(DISTINCT (\n                    OC.position,\n                    OC.item_type,\n                    OC.token::TEXT,\n                    OC.identifier_or_criteria,\n                    OC.start_amount,\n                    OC.end_amount,\n                    OC.recipient::TEXT\n                )) AS \"considerations!: Vec<DBConsideration>\",\n                array_agg(DISTINCT (\n                    OOF.position,\n                    OOF.item_type,\n                    OOF.token::TEXT,\n                    OOF.identifier_or_criteria,\n                    OOF.start_amount,\n                    OOF.end_amount\n                )) AS \"offers!: Vec<DBOffer>\"\n            FROM orders O\n                INNER JOIN considerations OC ON O.hash = OC.order\n                INNER JOIN offers OOF ON O.hash = OOF.order\n            WHERE O.hash IN (\n                SELECT C.order FROM considerations C \n                    WHERE (C.token = $1::TEXT::citext OR $1::TEXT::citext = '0x0000000000000000000000000000000000000000000000000000000000000000')\n                    AND (C.identifier_or_criteria = ANY($2::TEXT[]) OR cardinality($2::TEXT[]) = 0)\n            )\n            AND (O.offerer = $3::TEXT::citext OR $3::TEXT::citext = '0x0000000000000000000000000000000000000000000000000000000000000000')\n            GROUP BY O.hash\n            LIMIT $4;\n        "
+  },
+  "323aec6855a9c9052445832e43963355a60420dfd1f7cac72284fcbd860bac8a": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "\n            INSERT INTO addresses (address)\n                VALUES ($1::TEXT::citext)\n                ON CONFLICT (address) DO NOTHING;\n        "
+  },
+  "3f1bbb4850f2794d879bdec046c3ebf9b8bb338e53c3d7c64309a674eee80114": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Text",
+          "Int4",
+          "Text",
+          "Text",
+          "Text",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "\n            INSERT INTO considerations (\n                position,\n                \"order\",\n                item_type,\n                token,\n                identifier_or_criteria,\n                start_amount,\n                end_amount,\n                recipient\n            )\n                VALUES ($1, $2, $3, $4::TEXT::citext, $5, $6, $7, $8::TEXT::citext)\n                ON CONFLICT (\"order\", position) DO NOTHING;\n        "
+  },
+  "4a5443e9879815966d92e5571fda4ee937b33c81f4b79b18f9e255438e8c7e81": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "\n                INSERT INTO addresses (address)\n                    VALUES ($1::TEXT::citext)\n                    ON CONFLICT (address) DO NOTHING;\n            "
+  },
+  "64d88d952a6ed486a07ca5d33cf9613e780ec3671cf9f0bf4a536ba03db23e96": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text",
+          "Text",
+          "Text",
+          "Int8",
+          "Int8",
+          "Int4",
+          "Int4",
+          "Int8",
+          "Text",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "\n            INSERT INTO orders (\n                hash,\n                offerer,\n                zone,\n                zone_hash,\n                start_time,\n                end_time,\n                order_type,\n                total_original_consideration_items,\n                counter,\n                salt,\n                conduit_key,\n                signature\n            )\n                VALUES ($1, $2::TEXT::citext, $3::TEXT::citext, $4, $5, $6, $7, $8, $9, $10, $11, $12)\n                ON CONFLICT (hash) DO NOTHING;\n        "
+  },
+  "86e3e8111cb02ec2bc2ba1d0a1816ccf67802ef29e51be550b971d05440d30d3": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Text",
+          "Int4",
+          "Text",
+          "Text",
+          "Text",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "\n                INSERT INTO considerations (\n                    position,\n                    \"order\",\n                    item_type,\n                    token,\n                    identifier_or_criteria,\n                    start_amount,\n                    end_amount,\n                    recipient\n                )\n                    VALUES ($1, $2, $3, $4::TEXT::citext, $5, $6, $7, $8::TEXT::citext)\n                    ON CONFLICT (\"order\", position) DO NOTHING;\n            "
   },
   "890116bfb77b847443def9a05697828f7f417074e7ffdeb07ca0762c3f53d01e": {
     "describe": {
@@ -80,7 +212,7 @@
     },
     "query": "INSERT INTO networks (network, indexed_block) VALUES ($1, $2) ON CONFLICT DO NOTHING"
   },
-  "9dfa60dbd00656de0286dc43ffbfebacda20a58297b71ca84c60c267982d0bad": {
+  "9e4ebef35d3b34dae77c5dcf2cbea0636cd68bbdaadaaa12f7ba76d184d23f19": {
     "describe": {
       "columns": [],
       "nullable": [],
@@ -96,7 +228,7 @@
         ]
       }
     },
-    "query": "INSERT INTO offers (position, \"order\", item_type, token, identifier_or_criteria, start_amount, end_amount) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (position, \"order\") DO NOTHING"
+    "query": "\n            INSERT INTO offers (\n                position,\n                \"order\",\n                item_type,\n                token,\n                identifier_or_criteria,\n                start_amount,\n                end_amount\n            )\n                VALUES ($1, $2, $3, $4::TEXT::citext, $5, $6, $7)\n                ON CONFLICT (\"order\", position) DO NOTHING;\n        "
   },
   "a0d912fb0b10dc88734914b3c16a3213febee0c92279d517ee342414e579354f": {
     "describe": {
@@ -111,7 +243,7 @@
     },
     "query": "UPDATE networks SET indexed_block = $2 WHERE network = $1"
   },
-  "ad56503eb85d9ca94d11e4d3562e95fdd20e845d112d431b9b58d6ae1a0af5a4": {
+  "a2e5e9a0ad75fe61e25cd248de891a61949bdf0b04d6c6198a3dc7d9e61b0433": {
     "describe": {
       "columns": [
         {
@@ -187,8 +319,8 @@
       ],
       "nullable": [
         false,
-        false,
-        false,
+        null,
+        null,
         false,
         false,
         false,
@@ -210,7 +342,7 @@
         ]
       }
     },
-    "query": "\n            SELECT\n                O.hash as \"hash!\",\n                O.offerer as \"offerer!\",\n                O.zone as \"zone!\",\n                O.zone_hash as \"zone_hash!\",\n                O.start_time as \"start_time!\",\n                O.end_time as \"end_time!\",\n                O.order_type as \"order_type!\",\n                O.total_original_consideration_items as \"total_original_consideration_items!\",\n                O.counter as \"counter!\",\n                O.salt as \"salt!\",\n                O.conduit_key as \"conduit_key!\",\n                O.signature as \"signature!\",\n                array_agg(DISTINCT (\n                    OC.position,\n                    OC.item_type,\n                    OC.token,\n                    OC.identifier_or_criteria,\n                    OC.start_amount,\n                    OC.end_amount,\n                    OC.recipient\n                )) AS \"considerations!: Vec<DBConsideration>\",\n                array_agg(DISTINCT (\n                    OOF.position,\n                    OOF.item_type,\n                    OOF.token,\n                    OOF.identifier_or_criteria,\n                    OOF.start_amount,\n                    OOF.end_amount\n                )) AS \"offers!: Vec<DBOffer>\"\n            FROM orders O\n                INNER JOIN considerations OC ON O.hash = OC.order\n                INNER JOIN offers OOF ON O.hash = OOF.order\n            WHERE O.hash IN (\n                SELECT C.order FROM considerations C \n                    WHERE (C.token = $1 OR $1 = '0x0000000000000000000000000000000000000000000000000000000000000000')\n                    AND (C.identifier_or_criteria = ANY($2::TEXT[]) OR cardinality($2::TEXT[]) = 0)\n            )\n            AND (O.offerer = $3 OR $3 = '0x0000000000000000000000000000000000000000000000000000000000000000')\n            GROUP BY O.hash\n            LIMIT $4;\n        "
+    "query": "\n            SELECT\n                O.hash as \"hash!\",\n                O.offerer::TEXT as \"offerer!\",\n                O.zone::TEXT as \"zone!\",\n                O.zone_hash as \"zone_hash!\",\n                O.start_time as \"start_time!\",\n                O.end_time as \"end_time!\",\n                O.order_type as \"order_type!\",\n                O.total_original_consideration_items as \"total_original_consideration_items!\",\n                O.counter as \"counter!\",\n                O.salt as \"salt!\",\n                O.conduit_key as \"conduit_key!\",\n                O.signature as \"signature!\",\n                array_agg(DISTINCT (\n                    OC.position,\n                    OC.item_type,\n                    OC.token::TEXT,\n                    OC.identifier_or_criteria,\n                    OC.start_amount,\n                    OC.end_amount,\n                    OC.recipient::TEXT\n                )) AS \"considerations!: Vec<DBConsideration>\",\n                array_agg(DISTINCT (\n                    OOF.position,\n                    OOF.item_type,\n                    OOF.token::TEXT,\n                    OOF.identifier_or_criteria,\n                    OOF.start_amount,\n                    OOF.end_amount\n                )) AS \"offers!: Vec<DBOffer>\"\n            FROM orders O\n                INNER JOIN considerations OC ON O.hash = OC.order\n                INNER JOIN offers OOF ON O.hash = OOF.order\n            WHERE O.hash IN (\n                SELECT OF.order FROM offers OF\n                    WHERE (OF.token = $1::TEXT::citext OR $1::TEXT::citext = '0x0000000000000000000000000000000000000000000000000000000000000000')\n                    AND (OF.identifier_or_criteria = ANY($2::TEXT[]) OR cardinality($2::TEXT[]) = 0)\n            )\n            AND (O.offerer = $3::TEXT::citext OR $3::TEXT::citext = '0x0000000000000000000000000000000000000000000000000000000000000000')\n            GROUP BY O.hash\n            LIMIT $4;\n        "
   },
   "b4b0f2f367afd2f81a8c130f30519e10232bfce97ca55ad84224fe420fd33dcc": {
     "describe": {
@@ -225,6 +357,24 @@
     },
     "query": "UPDATE orders SET cancelled = $2 WHERE hash = $1"
   },
+  "b8606b7c3f5b586901eb7ab719585e8b996d9a81ebb3c6a3e453882225c29076": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Text",
+          "Int4",
+          "Text",
+          "Text",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "\n                INSERT INTO offers (\n                    position,\n                    \"order\",\n                    item_type,\n                    token,\n                    identifier_or_criteria,\n                    start_amount,\n                    end_amount\n                )\n                    VALUES ($1, $2, $3, $4::TEXT::citext, $5, $6, $7)\n                    ON CONFLICT (\"order\", position) DO NOTHING;\n            "
+  },
   "df998a15682d6e183e2cdd9b21413b81f8f4c3247536f174440a2ea34adf12ed": {
     "describe": {
       "columns": [],
@@ -237,107 +387,6 @@
       }
     },
     "query": "UPDATE orders SET finalized = $2 WHERE hash = $1"
-  },
-  "e2b72acd1c68faea3654345ea3b1f98bba91eca4035a478111fd9662933e1633": {
-    "describe": {
-      "columns": [
-        {
-          "name": "hash!",
-          "ordinal": 0,
-          "type_info": "Text"
-        },
-        {
-          "name": "offerer!",
-          "ordinal": 1,
-          "type_info": "Text"
-        },
-        {
-          "name": "zone!",
-          "ordinal": 2,
-          "type_info": "Text"
-        },
-        {
-          "name": "zone_hash!",
-          "ordinal": 3,
-          "type_info": "Text"
-        },
-        {
-          "name": "start_time!",
-          "ordinal": 4,
-          "type_info": "Int8"
-        },
-        {
-          "name": "end_time!",
-          "ordinal": 5,
-          "type_info": "Int8"
-        },
-        {
-          "name": "order_type!",
-          "ordinal": 6,
-          "type_info": "Int4"
-        },
-        {
-          "name": "total_original_consideration_items!",
-          "ordinal": 7,
-          "type_info": "Int4"
-        },
-        {
-          "name": "counter!",
-          "ordinal": 8,
-          "type_info": "Int8"
-        },
-        {
-          "name": "salt!",
-          "ordinal": 9,
-          "type_info": "Text"
-        },
-        {
-          "name": "conduit_key!",
-          "ordinal": 10,
-          "type_info": "Text"
-        },
-        {
-          "name": "signature!",
-          "ordinal": 11,
-          "type_info": "Text"
-        },
-        {
-          "name": "considerations!: Vec<DBConsideration>",
-          "ordinal": 12,
-          "type_info": "RecordArray"
-        },
-        {
-          "name": "offers!: Vec<DBOffer>",
-          "ordinal": 13,
-          "type_info": "RecordArray"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        null,
-        null
-      ],
-      "parameters": {
-        "Left": [
-          "Text",
-          "TextArray",
-          "Text",
-          "Int8"
-        ]
-      }
-    },
-    "query": "\n            SELECT\n                O.hash as \"hash!\",\n                O.offerer as \"offerer!\",\n                O.zone as \"zone!\",\n                O.zone_hash as \"zone_hash!\",\n                O.start_time as \"start_time!\",\n                O.end_time as \"end_time!\",\n                O.order_type as \"order_type!\",\n                O.total_original_consideration_items as \"total_original_consideration_items!\",\n                O.counter as \"counter!\",\n                O.salt as \"salt!\",\n                O.conduit_key as \"conduit_key!\",\n                O.signature as \"signature!\",\n                array_agg(DISTINCT (\n                    OC.position,\n                    OC.item_type,\n                    OC.token,\n                    OC.identifier_or_criteria,\n                    OC.start_amount,\n                    OC.end_amount,\n                    OC.recipient\n                )) AS \"considerations!: Vec<DBConsideration>\",\n                array_agg(DISTINCT (\n                    OOF.position,\n                    OOF.item_type,\n                    OOF.token,\n                    OOF.identifier_or_criteria,\n                    OOF.start_amount,\n                    OOF.end_amount\n                )) AS \"offers!: Vec<DBOffer>\"\n            FROM orders O\n                INNER JOIN considerations OC ON O.hash = OC.order\n                INNER JOIN offers OOF ON O.hash = OOF.order\n            WHERE O.hash IN (\n                SELECT OF.order FROM offers OF\n                    WHERE (OF.token = $1 OR $1 = '0x0000000000000000000000000000000000000000000000000000000000000000')\n                    AND (OF.identifier_or_criteria = ANY($2::TEXT[]) OR cardinality($2::TEXT[]) = 0)\n            )\n            AND (O.offerer = $3 OR $3 = '0x0000000000000000000000000000000000000000000000000000000000000000')\n            GROUP BY O.hash\n            LIMIT $4;\n        "
   },
   "eb8ce485fbb3e88ecc676e8eed36873ec611eea11c581efb36efaa9d9ffd8ffe": {
     "describe": {

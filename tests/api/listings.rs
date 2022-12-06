@@ -1,10 +1,10 @@
 use crate::helpers::spawn_app;
-use actix_web::cookie::time::OffsetDateTime;
 use ethers::prelude::{LocalWallet, Signer};
 use quay::structs::OrderInput;
 use quay::structs::RetrieveResponse;
 use siwe::{TimeStamp, Version};
 use std::str::FromStr;
+use time::OffsetDateTime;
 
 extern crate serde_json;
 
@@ -16,7 +16,7 @@ extern crate serde_json;
 //
 // You can inspect what code gets generated using
 // `cargo expand --test health_check` (<- name of the test file)
-#[actix_rt::test]
+#[tokio::test]
 async fn create_and_retrieve_listing_works() {
     // Arrange
     let app = spawn_app().await;
@@ -183,7 +183,7 @@ async fn create_and_retrieve_listing_works() {
     // assert_eq!(first_order, json_body);
 }
 
-#[actix_rt::test]
+#[tokio::test]
 async fn retrieve_listing_by_contract_address_works() {
     let app = spawn_app().await;
 
@@ -350,7 +350,7 @@ async fn retrieve_listing_by_contract_address_works() {
         .clone();
 }
 
-#[actix_rt::test]
+#[tokio::test]
 async fn retrieve_listing_by_offerer_works() {
     let app = spawn_app().await;
 

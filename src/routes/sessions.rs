@@ -1,83 +1,120 @@
-use crate::structs::{SignedMessage, TypedSession};
-use crate::utils::verify_session;
-use actix_web::cookie::time::OffsetDateTime;
-use actix_web::http::header::ContentType;
-use actix_web::{get, post, web, HttpResponse};
-use ethers::abi::Address;
-use siwe;
-use std::time::SystemTime;
+use axum::extract::Json;
+use axum::response::IntoResponse;
+use axum_sessions::extractors::{ReadableSession, WritableSession};
 
-#[get("/nonce")]
+use ethers::types::Address;
+use http::{header, HeaderMap, StatusCode};
+
+use siwe::VerificationOpts;
+
+use crate::auth::*;
+
 #[tracing::instrument(name = "Getting an EIP-4361 nonce for session", skip(session))]
-async fn get_nonce(session: TypedSession) -> HttpResponse {
-    let nonce = siwe::nonce::generate_nonce();
-    match session.insert_nonce(&nonce) {
+pub async fn get_nonce(mut session: WritableSession) -> impl IntoResponse {
+    let nonce = siwe::generate_nonce();
+    match &session.insert(NONCE_KEY, &nonce) {
         Ok(_) => {}
-        Err(_) => return HttpResponse::InternalServerError().finish(),
+        Err(_) => {
+            return (StatusCode::INTERNAL_SERVER_ERROR, "Failed to set nonce.").into_response()
+        }
     }
     // Make sure we don't inherit a dirty settion expiry
-    match session.insert_expiration_time(&OffsetDateTime::UNIX_EPOCH) {
+    let ts = match unix_timestamp() {
+        Ok(ts) => ts,
+        Err(_) => {
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Failed to get unix timestamp.",
+            )
+                .into_response()
+        }
+    };
+    match session.insert(EXPIRATION_TIME_KEY, ts) {
         Ok(_) => {}
-        Err(_) => return HttpResponse::InternalServerError().finish(),
+        Err(_) => {
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Failed to set expiration.",
+            )
+                .into_response()
+        }
     }
-    HttpResponse::Ok()
-        .content_type(ContentType::plaintext())
-        .body(nonce)
+    let mut headers = HeaderMap::new();
+    headers.insert(header::CONTENT_TYPE, "text/plain".parse().unwrap());
+    (headers, nonce).into_response()
 }
 
-#[post("/verify")]
 #[tracing::instrument(
     name = "Verifying user EIP-4361 session",
     skip(session, signed_message)
 )]
-async fn verify(session: TypedSession, signed_message: web::Json<SignedMessage>) -> HttpResponse {
-    // Infallible becasuse the signature has already been validated
+pub async fn verify(
+    mut session: WritableSession,
+    signed_message: Json<SignedMessage>,
+) -> impl IntoResponse {
+    // Infallible because the signature has already been validated
     let message = signed_message.message.clone();
     // The frontend must set a session expiry
-    let session_nonce = match session.get_nonce() {
-        Ok(nonce) => match nonce {
-            Some(no) => no,
-            None => return HttpResponse::UnprocessableEntity().body("Failed to get nonce"),
-        },
-        // Invalid nonce
-        Err(_) => return HttpResponse::UnprocessableEntity().body("Failed to get nonce"),
+    let session_nonce = match session.get(NONCE_KEY) {
+        Some(no) => no,
+        None => return (StatusCode::UNPROCESSABLE_ENTITY, "Failed to get nonce.").into_response(),
     };
 
     // Verify the signed message
-    match message.verify(
-        signed_message.signature.0,
-        Option::None,
-        Option::Some(session_nonce.as_str()),
-        Option::None,
-    ) {
-        Ok(_) => {}
-        Err(error) => {
-            return HttpResponse::UnprocessableEntity().body(format!("Invalid signature {error}"))
-        }
-    }
-    let now = SystemTime::now()
-        .duration_since(SystemTime::UNIX_EPOCH)
-        .unwrap()
-        .as_secs()
-        + 604800;
-    match session.insert_expiration_time(&OffsetDateTime::from_unix_timestamp(now as i64).unwrap())
+    match message
+        .verify(
+            signed_message.signature.as_ref(),
+            &VerificationOpts {
+                nonce: Some(session_nonce),
+                ..Default::default()
+            },
+        )
+        .await
     {
         Ok(_) => {}
-        Err(_) => {
-            return HttpResponse::InternalServerError().body("Failed to insert expiration time.")
+        Err(error) => {
+            return (
+                StatusCode::UNPROCESSABLE_ENTITY,
+                format!("Invalid signature {error}."),
+            )
+                .into_response()
         }
     }
-    match session.insert_address(&Address::from(message.address)) {
+    let now = match unix_timestamp() {
+        Ok(now) => now,
+        Err(_) => {
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Failed to get timestamp.",
+            )
+                .into_response()
+        }
+    };
+    let expiry = now + 604800;
+    match session.insert(EXPIRATION_TIME_KEY, expiry) {
         Ok(_) => {}
         Err(_) => {
-            return HttpResponse::InternalServerError().body("Failed to insert user address.")
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Failed to insert expiration time.",
+            )
+                .into_response()
         }
     }
-    HttpResponse::Ok().finish()
+    match session.insert(USER_ADDRESS_KEY, Address::from(message.address)) {
+        Ok(_) => {}
+        Err(_) => {
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Failed to insert user address.",
+            )
+                .into_response()
+        }
+    }
+    (StatusCode::OK).into_response()
 }
 
-#[get("/authenticate")]
 #[tracing::instrument(name = "Checking user EIP-4361 authentication", skip(session))]
-async fn authenticate(session: TypedSession) -> HttpResponse {
+pub async fn authenticate(session: ReadableSession) -> impl IntoResponse {
     verify_session(&session).await
 }

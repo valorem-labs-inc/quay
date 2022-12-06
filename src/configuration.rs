@@ -76,7 +76,6 @@ pub struct Settings {
     pub rpc: RPCSettings,
     pub redis_url: Secret<String>,
     pub indexer: IndexerSettings,
-    pub paperclip: PaperclipSettings,
 }
 
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {

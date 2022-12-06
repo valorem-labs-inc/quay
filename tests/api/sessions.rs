@@ -1,10 +1,10 @@
 use crate::helpers::spawn_app;
-use actix_web::cookie::time::OffsetDateTime;
 use ethers::signers::{LocalWallet, Signer};
 use siwe::{TimeStamp, Version};
 use std::str::FromStr;
+use time::OffsetDateTime;
 
-#[actix_rt::test]
+#[tokio::test]
 async fn verify_session_works() {
     // Arrange
     let app = spawn_app().await;
