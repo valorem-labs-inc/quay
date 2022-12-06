@@ -6,47 +6,56 @@ use tonic::codegen::futures_core::Stream;
 use tonic::{Request, Response, Status, Streaming};
 
 #[derive(Debug, Default)]
-pub struct RFQService {}
+pub struct TraderRFQService {}
 
 #[tonic::async_trait]
-impl Trader for RFQService {
+impl Trader for TraderRFQService {
     type QuoteStream =
         Pin<Box<dyn Stream<Item = Result<ValoremQuoteRequest, Status>> + Send + Sync + 'static>>;
 
-    // Basic stream setup to send 10 numbers, before closing as a simple client test
     async fn quote(
         &self,
         request: Request<Streaming<QuoteResponse>>,
     ) -> Result<Response<Self::QuoteStream>, Status> {
-        let (tx, rx) = channel(64);
+        let (tx_request_for_quote, rx_request_for_quote) =
+            channel::<Result<ValoremQuoteRequest, Status>>(64);
 
-        // Consume the first message - this will always be blank
         let mut client_stream = request.into_inner();
-        if let Ok(msg) = client_stream.message().await {
-            println!("Received: {}", msg.unwrap().message_id);
-        }
 
+        // This task will send the Quote requests to the MM client that has just connected.
         tokio::spawn(async move {
-            let mut a = 0u64;
             loop {
-                println!("Server sending {}", a);
-                tx.send(Ok(ValoremQuoteRequest {
-                    message_id: a,
-                    ..Default::default()
-                }))
-                .await
-                .unwrap();
+                // TODO: receive quote request from front-end client (redis).
 
-                a += 1;
+                // Forward the front-end client request onto the MM
+                tx_request_for_quote
+                    .send(Ok(ValoremQuoteRequest {
+                        ..Default::default()
+                    }))
+                    .await
+                    .unwrap();
 
-                if let Ok(msg) = client_stream.message().await {
-                    println!("Server received: {}", msg.unwrap().message_id);
+                // We use the stream as a ping-pong stream, so once we have send a quote request
+                // await for the MM response.
+                if let Ok(Some(response)) = client_stream.message().await {
+                    if response.order.is_none() {
+                        // TODO: Inform trader of no offer
+                        println!("MM was unable to give FE client an offer.");
+                    } else {
+                        // TODO: Inform trader of offer
+                        println!("Offer from MM.");
+                    }
+                } else {
+                    // We encountered an error with the client connection. Drop the connection.
+                    break;
                 }
             }
         });
 
+        // Send back the stream to the receive side of the channel that the Tokio task above will
+        // write into.
         Ok(Response::new(Box::pin(
-            tokio_stream::wrappers::ReceiverStream::new(rx),
+            tokio_stream::wrappers::ReceiverStream::new(rx_request_for_quote),
         )))
     }
 }

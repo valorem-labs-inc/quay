@@ -1,8 +1,7 @@
-// Reference: https://github.com/ledgerwatch/interfaces/blob/master/src/lib.rs
-use arrayref::array_ref;
-
 // Setup From traits allowing the conversion between proto types and ethers types.
-tonic::include_proto!("quay");
+// Reference: https://github.com/ledgerwatch/interfaces/blob/master/src/lib.rs
+use crate::rfq::*;
+use arrayref::array_ref;
 
 // Macro allowing for proto types to be converted into numbers (and vice versa), moving
 // through the fixed hash type first.

@@ -6,20 +6,25 @@ participant Quay
 end box
 actor "Market Maker" as MM
 
+== Initialisation ==
+MM --> Quay: Authenticate
+MM --> Quay: gRPC RFQ Stream
+Quay --> MM: gRPC RFQ Stream
+
 == Case: Market Maker has no offer for Trader ==
 autonumber
-Trader -> Quay: Request for Quote\nWebsockets: RFQ
+Trader -> Quay: gRPC: <server>/rfq
 note right
-RFQ JSON structure
+ValoremQuoteRequest
 end note
-Quay -> MM: Request for Quote\nWebsockets: RFQ
+Quay -> MM: gRPC: RFQ Stream
 note right
-RFQ JSON structure
+ValoremQuoteRequest
 end note
 MM -[#red]x MM: No offer
-MM -> Quay: Websockets: false
+MM -> Quay: gRPC: RFQ Stream
 note right
-Reply JSON structure
+QuoteResponse: None
 end note
-Quay -> Trader: No offers
+Quay -> Trader: gRPC: No offers
 @enduml

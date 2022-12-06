@@ -42,10 +42,8 @@ pub fn run(
     redis_pool: Pool<RedisConnectionManager>,
     rpc: Provider<Http>,
 ) -> BoxFuture<'static, Result<(), std::io::Error>> {
-    println!("Starting server process");
     let provider = Arc::new(rpc.clone());
 
-    println!("Provider connected - starting seaport");
     let seaport = Seaport::new(
         H160::from_str("0x00000000006c3852cbEf3e08E8dF289169EdE581").unwrap(),
         provider,
@@ -74,7 +72,6 @@ pub fn run(
     };
 
     // TODO(Cleanup duplicate state)
-    println!("Starting main HTTP endpoints");
     let http = Router::new()
         .route("/", get(|| async { "Hello, world!" }))
         .route("/health_check", get(health_check))
@@ -106,9 +103,8 @@ pub fn run(
         .map_err(BoxError::from)
         .boxed_clone();
 
-    println!("Starting gRPC");
     let grpc = Server::builder()
-        .add_service(TraderServer::new(RFQService {}))
+        .add_service(TraderServer::new(TraderRFQService {}))
         .into_service()
         .map_response(|r| r.map(axum::body::boxed))
         .boxed_clone();
@@ -153,8 +149,6 @@ impl Application {
             "{}:{}",
             configuration.application.host, configuration.application.port
         );
-
-        println!("Starting on {}", address);
 
         let listener = TcpListener::bind(&address)?;
         let port = listener.local_addr().unwrap().port();

@@ -29,6 +29,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         args[0].push('/');
     }
 
+    // TODO: authenticate with Quay
+
     // Connect to the Quay server's RFQ endpoint
     let rfq_uri = format!("{}rfq", args[0]).parse::<Uri>().unwrap();
     let mut client = TraderClient::new(Channel::builder(rfq_uri).connect().await.unwrap());
@@ -50,14 +52,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let (tx_server_request, mut rx_server_request) = mpsc::channel::<ValoremQuoteRequest>(64);
 
     let task = tokio::spawn(async move {
-        // The initial request to the endpoint is discarded as this sets up the server/client
-        // streams
-        let response = QuoteResponse {
-            ..Default::default()
-        };
-        tx_server_response.send(response).await.unwrap();
-
-        // Loop until the stream feeding us the server requests end
+        // Loop until the stream feeding us the server requests ends
         while let Some(request_for_quote) = rx_server_request.recv().await {
             let quote_offer = handle_server_request(request_for_quote);
 
@@ -68,7 +63,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         eprintln!("Client connection to the server has been closed");
     });
 
-    // Send the initial request to the server, which will establish the streams
+    // Call the required function which will return the servers response stream (which is really
+    // requests to the client).
     let mut quote_stream = client
         .quote(tokio_stream::wrappers::ReceiverStream::new(
             rx_server_response,
@@ -79,11 +75,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Now we have received the servers request stream - loop until it ends (its not expected to).
     while let Ok(Some(quote)) = quote_stream.message().await {
-        println!(
-            "Received quote request from server. Message Id: {}, Trader: {:?}",
-            quote.message_id,
-            quote.trader_address.as_ref()
-        );
+        println!("Received quote request from server.");
         tx_server_request.send(quote).await.unwrap();
     }
 
@@ -95,9 +87,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(task.await.unwrap())
 }
 
-fn handle_server_request(request_for_quote: ValoremQuoteRequest) -> QuoteResponse {
+fn handle_server_request(_request_for_quote: ValoremQuoteRequest) -> QuoteResponse {
     QuoteResponse {
-        message_id: request_for_quote.message_id,
         ..Default::default()
     }
 }
