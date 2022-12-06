@@ -10,11 +10,11 @@ use sqlx::{query_as, PgPool};
 
 use crate::structs::{DBConsideration, DBOffer, DBOrder, OrderQuery, RetrieveResponse};
 
-pub async fn seaport_legacy_retrieve_listings(
+pub async fn retrieve_offers(
     State(pool): State<PgPool>,
     query: Query<OrderQuery>,
 ) -> impl IntoResponse {
-    match retrieve_listings(
+    match retrieve_offers_db(
         &pool,
         query.asset_contract_address.encode_hex(),
         query
@@ -40,7 +40,7 @@ pub async fn seaport_legacy_retrieve_listings(
     }
 }
 
-async fn retrieve_listings(
+async fn retrieve_offers_db(
     pool: &PgPool,
     asset_contract_address: String,
     token_ids: &[String],
@@ -84,9 +84,9 @@ async fn retrieve_listings(
                 INNER JOIN considerations OC ON O.hash = OC.order
                 INNER JOIN offers OOF ON O.hash = OOF.order
             WHERE O.hash IN (
-                SELECT OF.order FROM offers OF
-                    WHERE (OF.token = $1::TEXT::citext OR $1::TEXT::citext = '0x0000000000000000000000000000000000000000000000000000000000000000')
-                    AND (OF.identifier_or_criteria = ANY($2::TEXT[]) OR cardinality($2::TEXT[]) = 0)
+                SELECT C.order FROM considerations C 
+                    WHERE (C.token = $1::TEXT::citext OR $1::TEXT::citext = '0x0000000000000000000000000000000000000000000000000000000000000000')
+                    AND (C.identifier_or_criteria = ANY($2::TEXT[]) OR cardinality($2::TEXT[]) = 0)
             )
             AND (O.offerer = $3::TEXT::citext OR $3::TEXT::citext = '0x0000000000000000000000000000000000000000000000000000000000000000')
             GROUP BY O.hash
