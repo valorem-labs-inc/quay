@@ -2596,6 +2596,7 @@ dependencies = [
  "serde_json",
  "siwe",
  "sqlx",
+ "time 0.3.17",
  "tokio",
  "tonic",
  "tonic-build",
