@@ -8,6 +8,7 @@ use ethers::types::Address;
 use http::{header, HeaderMap, StatusCode};
 use serde::{Deserialize, Serialize};
 use siwe::{Message, VerificationOpts};
+
 use crate::auth::*;
 
 #[tracing::instrument(name = "Getting an EIP-4361 nonce for session", skip(session))]
