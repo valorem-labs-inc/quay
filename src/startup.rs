@@ -145,10 +145,21 @@ impl Application {
         let port = listener.local_addr().unwrap().port();
 
         let store = RedisSessionStore::new(redis_multiplexed.clone(), Some("/sessions".into()));
-        let secret = configuration.application.hmac_secret.expose_secret().as_bytes(); // MUST be at least 64 bytes!
+        let secret = configuration
+            .application
+            .hmac_secret
+            .expose_secret()
+            .as_bytes(); // MUST be at least 64 bytes!
         let session_layer = SessionLayer::new(store, secret);
 
-        let server = run(listener, db_pool, redis_pool, redis_multiplexed, session_layer, provider);
+        let server = run(
+            listener,
+            db_pool,
+            redis_pool,
+            redis_multiplexed,
+            session_layer,
+            provider,
+        );
 
         Ok(Self { server, port })
     }
