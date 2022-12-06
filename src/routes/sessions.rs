@@ -1,13 +1,13 @@
-use std::time::{SystemTime, UNIX_EPOCH};
+
 
 use axum::extract::Json;
 use axum::response::IntoResponse;
 use axum_sessions::extractors::{ReadableSession, WritableSession};
-use ethers::abi::ethereum_types::Signature;
+
 use ethers::types::Address;
 use http::{header, HeaderMap, StatusCode};
-use serde::{Deserialize, Serialize};
-use siwe::{Message, VerificationOpts};
+
+use siwe::{VerificationOpts};
 
 use crate::auth::*;
 
