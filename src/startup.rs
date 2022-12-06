@@ -79,6 +79,8 @@ pub fn run(
         .route("/listings", post(create_listing).get(retrieve_listings))
         .route("/offers", post(create_offer).get(retrieve_offers))
         .route("/nonce", get(get_nonce))
+        .route("/verify", post(verify))
+        .route("/authenticate", post(authenticate))
         // Layers/middleware
         .layer(TraceLayer::new_for_http().make_span_with(TowerMakeSpanWithConstantId))
         .layer(RequestIdLayer)
