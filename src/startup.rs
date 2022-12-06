@@ -47,6 +47,7 @@ pub fn run(
     db_pool: PgPool,
     redis_pool: Pool<RedisConnectionManager>,
     redis_multiplexed: ConnectionManager,
+    session_layer: SessionLayer<RedisSessionStore>,
     rpc: Provider<Http>,
 ) -> BoxFuture<'static, Result<(), std::io::Error>> {
     let provider = Arc::new(rpc.clone());
@@ -57,11 +58,6 @@ pub fn run(
     );
 
     let cors = CorsLayer::very_permissive();
-
-    let store = RedisSessionStore::new(redis_multiplexed.clone(), Some("/sessions".into()));
-    let secret =
-        b"000000000006c3852cbEf3e08E8dF289169EdE581000000000006c3852cbEf3e08E8dF289169EdE581"; // MUST be at least 64 bytes!
-    let session_layer = SessionLayer::new(store, secret);
 
     let state = AppState {
         db_pool,
@@ -148,7 +144,11 @@ impl Application {
         let listener = TcpListener::bind(&address)?;
         let port = listener.local_addr().unwrap().port();
 
-        let server = run(listener, db_pool, redis_pool, redis_multiplexed, provider);
+        let store = RedisSessionStore::new(redis_multiplexed.clone(), Some("/sessions".into()));
+        let secret = configuration.application.hmac_secret.expose_secret().as_bytes(); // MUST be at least 64 bytes!
+        let session_layer = SessionLayer::new(store, secret);
+
+        let server = run(listener, db_pool, redis_pool, redis_multiplexed, session_layer, provider);
 
         Ok(Self { server, port })
     }
