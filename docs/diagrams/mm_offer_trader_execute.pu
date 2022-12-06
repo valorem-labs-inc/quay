@@ -9,31 +9,31 @@ box Valorem #LightBlue
 participant SettlementEngine as SE
 end box
 
+== Initialisation ==
+MM --> Quay: Authenticate
+MM --> Quay: gRPC RFQ Stream
+Quay --> MM: gRPC RFQ Stream
+
 == Case: Market Maker Offer, Trader executes ==
 autonumber
-Trader -> Quay: Request for Quote\nWebsockets: RFQ
+Trader -> Quay: gRPC: <server>/rfq
 note right
-RFQ JSON structure
+ValoremQuoteRequest
 end note
-Quay -> MM: Request for Quote\nWebsockets: RFQ
+Quay -> MM: gRPC: RFQ Stream
 note right
-RFQ JSON structure
+ValoremQuoteRequest
 end note
-MM -> Quay: HTTP POST: <url>/offers
-note right #red
-**bid**
-end note
-MM -> Quay: Reply\nWebsockets: Reply
+MM -> Quay: gRPC: RFQ Stream
 note right
-Reply JSON structure
+ValoremQuoteRequest: Some
 end note
-MM -> SE: <<Async>> on-chain: write
-Quay --> Quay: Search offers
-Quay -> Trader: Offer
+MM --> SE: On-chain: write
+Quay -> Trader: gRPC: Offer
 hnote over Trader #lightBlue
 [Start of exercise window]
 end hnote
-Trader -> SE: on-chain: exercise
+Trader --> SE: On-chain: exercise
 hnote over Trader #lightBlue
 [ End of exercise window ]
 end hnote

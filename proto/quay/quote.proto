@@ -12,20 +12,22 @@ service Quote {
     rpc Quote (ValoremQuoteRequest) returns (QuoteResponse);
 }
 
+service Trader {
+    rpc Quote (stream QuoteResponse) returns (stream ValoremQuoteRequest);
+}
+
 // TODO(Should this only live in a downstream fork)
 message ValoremQuoteRequest {
-    uint64 messageId = 1;
-    H160 traderAddress = 2;
-    H160 underlyingAsset = 3;
-    H96 underlyingAmount = 4;
-    H160 exerciseAsset = 5;
-    H96 exerciseAmount = 6;
-    H40 exerciseTimestamp = 7;
-    H40 expiryTimestamp = 8;
+    H160 traderAddress = 1;
+    H160 underlyingAsset = 2;
+    H96 underlyingAmount = 3;
+    H160 exerciseAsset = 4;
+    H96 exerciseAmount = 5;
+    H40 exerciseTimestamp = 6;
+    H40 expiryTimestamp = 7;
+    H256 optionId = 8;
 }
 
 message QuoteResponse {
-    uint64 messageId = 1;
-    H160 traderAddress = 2;
-    Order order = 3;
+    Order order = 1;
 }

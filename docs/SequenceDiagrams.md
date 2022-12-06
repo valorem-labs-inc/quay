@@ -22,49 +22,43 @@ Trader may want to sell their (created) options to the market maker instead.
 
 ![trader_listing_mm_offer](./diagrams/trader_listing_mm_offer.png)
 
-### Market Maker General Pricing:
-This sequence allows the front end to display the general pricing for assets before
-requesting for a quote.
-![mm_pricing](./diagrams/mm_pricing.png)
-
 ### General
-#### Request for Quote (RFQ) JSON data structure
-If the `listingId` is given then all other details will be ignored.
+#### Request for Quote (RFQ) data structure
 
-```json
-{
-  "listingId": 0,
-  "traderAddress": "",
-  "underlyingAsset": "",
-  "underlyingAmount": 0,
-  "exerciseAsset": "",
-  "exerciseAmount": 0,
-  "exerciseTimestamp": 0,
-  "expiryTimestamp": 0,
-  "settlementSeed": 0,
-  "nextClaimNum": 0
+If the Trader doesn't fill the `exerciseTimestamp` or `expiryTimestamp`
+then the Market Maker is free to set those values to whatever it chooses
+on the Option, otherwise the Market Maker must have the values set to 
+what the Trader wishes if it makes an offer.
+
+If the `listingId` is `Some` then all the information is taken from
+the listing instead.
+
+The Request for Quote request structure:
+
+```protobuf
+message ValoremQuoteRequest {
+  required H160 traderAddress = 1;
+  required H160 underlyingAsset = 2;
+  optional H96 underlyingAmount = 3;
+  required H160 exerciseAsset = 4;
+  required H96 exerciseAmount = 5;
+  optional H40 exerciseTimestamp = 6;
+  optional H40 expiryTimestamp = 7;
+  optional U256 listingId = 8;
 }
 ```
 
-#### Reply JSON data structure
-`messageId` and `traderAddress` would just echo back the details in the
-RFQ message.
+#### Quote Response data structure
 
-If an offer was made:
-```json
-{
-  "traderAddress": "",
-  "messageId": 0,
-  "hasOffer": true
-}
+If the Market Maker doesn't create an order, then the `order` field in the
+response will be `None`. If the Market Maker has an order and the response
+will contain `Some(order)`.
 
-```
+Quote response
+structure:
 
-If an offer was not made:
-```json
-{
-  "traderAddress": "",
-  "messageId": 0,
-  "hasOffer": false
+```protobuf
+message QuoteResponse {
+  optional Order order = 1;
 }
 ```

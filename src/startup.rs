@@ -27,7 +27,7 @@ use tower_http::trace::TraceLayer;
 
 use crate::middleware::{track_prometheus_metrics, RequestIdLayer};
 use crate::redis_pool::RedisConnectionManager;
-use crate::rfq::quote_server::QuoteServer;
+use crate::rfq::trader_server::TraderServer;
 use crate::routes::*;
 use crate::services::*;
 use crate::{bindings::Seaport, state::AppState};
@@ -91,7 +91,7 @@ pub fn run(
     let grpc = Server::builder()
         .layer(RequestIdLayer)
         .layer(TraceLayer::new_for_http().make_span_with(TowerMakeSpanWithConstantId))
-        .add_service(QuoteServer::new(RFQService::default()))
+        .add_service(TraderServer::new(TraderRFQService::default()))
         .into_service()
         .map_response(|r| r.map(axum::body::boxed))
         .boxed_clone();
