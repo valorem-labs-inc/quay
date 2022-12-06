@@ -73,9 +73,9 @@ pub struct PaperclipSettings {
 pub struct Settings {
     pub application: ApplicationSettings,
     pub database: DatabaseSettings,
-    pub indexer: IndexerSettings,
     pub redis_url: Secret<String>,
     pub rpc: RPCSettings,
+    pub indexer: IndexerSettings,
 }
 
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {

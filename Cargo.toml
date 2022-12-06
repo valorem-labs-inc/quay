@@ -18,7 +18,8 @@ axum-server = "0.4.4"
 axum-sessions = "0.4.1"
 bb8 = "0.8.0"
 chrono = "0.4"
-config = { version = "0.13.2", default-features = false, features = ["yaml"] }
+# TODO(Config breaks TryFrom between 0.11 -> 0.13, violating semantic versioning)
+config = { version = "0.11", default-features = false, features = ["yaml"] }
 ethers = "1.0.2"
 futures = "0.3.25"
 http = "0.2.8"
@@ -35,7 +36,8 @@ secrecy = { version = "0.8.0", features = ["serde"] }
 serde = { version = "1.0.148", features = ["derive"] }
 serde-aux = "4.1.2"
 serde_json = "1.0.89"
-siwe = "0.5.0"
+siwe = { version = "0.5.0", features = ["serde"] }
+time = "0.3.17"
 tokio = { version = "1.22", features = ["macros", "rt-multi-thread"] }
 tokio-stream = "0.1.11"
 tonic = "0.8.3"

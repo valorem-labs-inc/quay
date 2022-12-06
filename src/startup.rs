@@ -1,34 +1,40 @@
+use std::net::TcpListener;
+use std::str::FromStr;
+use std::sync::Arc;
+
+use async_redis_session::RedisSessionStore;
 use axum::{
     middleware,
     routing::{get, post},
     Router,
 };
 use axum_server::Handle;
+use axum_sessions::SessionLayer;
 use bb8::Pool;
 use ethers::prelude::*;
 use futures::future::BoxFuture;
 use futures::FutureExt;
 use http::{header::CONTENT_TYPE, Request};
 use hyper::Body;
+use redis::aio::ConnectionManager;
 use secrecy::ExposeSecret;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
-use std::net::TcpListener;
-use std::str::FromStr;
-use std::sync::Arc;
 use tonic::transport::Server;
 use tower::{make::Shared, steer::Steer, BoxError, ServiceExt};
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
-use tracing::error_span;
 
-use crate::configuration::{DatabaseSettings, Settings};
-use crate::middleware::{track_prometheus_metrics, RequestId, RequestIdLayer};
+use crate::middleware::{track_prometheus_metrics, RequestIdLayer};
 use crate::redis_pool::RedisConnectionManager;
 use crate::rfq::trader_server::TraderServer;
 use crate::routes::*;
 use crate::services::*;
 use crate::{bindings::Seaport, state::AppState};
+use crate::{
+    configuration::{DatabaseSettings, Settings},
+    telemetry::TowerMakeSpanWithConstantId,
+};
 
 pub fn get_connection_pool(configuration: &DatabaseSettings) -> PgPool {
     PgPoolOptions::new()
@@ -40,6 +46,8 @@ pub fn run(
     listener: TcpListener,
     db_pool: PgPool,
     redis_pool: Pool<RedisConnectionManager>,
+    redis_multiplexed: ConnectionManager,
+    session_layer: SessionLayer<RedisSessionStore>,
     rpc: Provider<Http>,
 ) -> BoxFuture<'static, Result<(), std::io::Error>> {
     let provider = Arc::new(rpc.clone());
@@ -49,24 +57,12 @@ pub fn run(
         provider,
     );
 
-    let tracing_layer = TraceLayer::new_for_http().make_span_with(|request: &Request<Body>| {
-        let request_id = request
-            .extensions()
-            .get::<RequestId>()
-            .map(ToString::to_string)
-            .unwrap_or_else(|| "unknown".into());
-        error_span!(
-            "request",
-            id = %request_id,
-            method = %request.method(),
-            uri = %request.uri(),
-        )
-    });
     let cors = CorsLayer::very_permissive();
 
     let state = AppState {
         db_pool,
         redis_pool,
+        redis_multiplexed,
         rpc,
         seaport,
     };
@@ -76,26 +72,15 @@ pub fn run(
         .route("/", get(|| async { "Hello, world!" }))
         .route("/health_check", get(health_check))
         .route("/metrics/prometheus", get(metrics_prometheus))
-        .route(
-            "/seaport/legacy/listings",
-            post(seaport_legacy_create_listing).get(seaport_legacy_retrieve_listings),
-        )
-        .route(
-            "/seaport/legacy/offers",
-            post(seaport_legacy_create_offer).get(seaport_legacy_retrieve_offers),
-        )
-        // Legacy endpoints to keep compatibility
-        .route(
-            "/listings",
-            post(seaport_legacy_create_listing).get(seaport_legacy_retrieve_listings),
-        )
-        .route(
-            "/offers",
-            post(seaport_legacy_create_offer).get(seaport_legacy_retrieve_offers),
-        )
+        .route("/listings", post(create_listing).get(retrieve_listings))
+        .route("/offers", post(create_offer).get(retrieve_offers))
+        .route("/nonce", get(get_nonce))
+        .route("/verify", post(verify))
+        .route("/authenticate", get(authenticate))
         // Layers/middleware
-        .layer(tracing_layer)
+        .layer(TraceLayer::new_for_http().make_span_with(TowerMakeSpanWithConstantId))
         .layer(RequestIdLayer)
+        .layer(session_layer)
         .layer(middleware::from_fn(track_prometheus_metrics))
         .layer(cors)
         // State
@@ -104,7 +89,9 @@ pub fn run(
         .boxed_clone();
 
     let grpc = Server::builder()
-        .add_service(TraderServer::new(TraderRFQService {}))
+        .layer(RequestIdLayer)
+        .layer(TraceLayer::new_for_http().make_span_with(TowerMakeSpanWithConstantId))
+        .add_service(TraderServer::new(TraderRFQService::default()))
         .into_service()
         .map_response(|r| r.map(axum::body::boxed))
         .boxed_clone();
@@ -141,6 +128,10 @@ impl Application {
                 configuration.redis_url.expose_secret().as_str(),
             )?)
             .await?;
+        let redis_multiplexed = ConnectionManager::new(redis::Client::open(
+            configuration.redis_url.expose_secret().as_str(),
+        )?)
+        .await?;
 
         let provider: Provider<Http> =
             Provider::new(Http::from_str(configuration.rpc.uri.as_str()).unwrap());
@@ -153,7 +144,22 @@ impl Application {
         let listener = TcpListener::bind(&address)?;
         let port = listener.local_addr().unwrap().port();
 
-        let server = run(listener, db_pool, redis_pool, provider);
+        let store = RedisSessionStore::new(redis_multiplexed.clone(), Some("/sessions".into()));
+        let secret = configuration
+            .application
+            .hmac_secret
+            .expose_secret()
+            .as_bytes(); // MUST be at least 64 bytes!
+        let session_layer = SessionLayer::new(store, secret);
+
+        let server = run(
+            listener,
+            db_pool,
+            redis_pool,
+            redis_multiplexed,
+            session_layer,
+            provider,
+        );
 
         Ok(Self { server, port })
     }
