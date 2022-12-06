@@ -1,5 +1,3 @@
-
-
 use axum::extract::Json;
 use axum::response::IntoResponse;
 use axum_sessions::extractors::{ReadableSession, WritableSession};
@@ -7,7 +5,7 @@ use axum_sessions::extractors::{ReadableSession, WritableSession};
 use ethers::types::Address;
 use http::{header, HeaderMap, StatusCode};
 
-use siwe::{VerificationOpts};
+use siwe::VerificationOpts;
 
 use crate::auth::*;
 
