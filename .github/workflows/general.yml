@@ -90,25 +90,26 @@ jobs:
             ~/.cargo/bin/cargo-sqlx
           key: ${{ runner.os }}-sqlx-${{ env.SQLX_VERSION }}-${{ env.SQLX_FEATURES }}
 
-      - uses: actions-rs/cargo@v1
+      - name: Formatting
+          uses: actions-rs/cargo@v1
           with:
             command: fmt
             args: --all -- --check
 
-      - name: Run clippy
+      - name: Clippy
           uses: actions-rs/clippy-check@v1
           with:
             token: ${{ secrets.GITHUB_TOKEN }}
             args: -- -D warnings
 
-      - name: Run tests
+      - name: Tests
           uses: actions-rs/cargo@v1
           env:
             APP_RPC__URI: ${{ secrets.APP_RPC__URI }}
           with:
             command: test
 
-      - name: Run cargo-tarpaulin
+      - name: Coverage
           uses: actions-rs/tarpaulin@v0.1
           env:
             APP_RPC__URI: ${{ secrets.APP_RPC__URI }}
