@@ -38,5 +38,5 @@ message QuoteRequest {
 message QuoteResponse {
     optional H128 ulid = 1;
     optional H160 makerAddress = 2;
-    Order order = 1;
+    Order order = 3;
 }
