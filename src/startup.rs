@@ -27,7 +27,7 @@ use tower_http::trace::TraceLayer;
 
 use crate::middleware::{track_prometheus_metrics, RequestIdLayer};
 use crate::redis_pool::RedisConnectionManager;
-use crate::rfq::trader_server::TraderServer;
+use crate::rfq::rfq_server::RfqServer;
 use crate::routes::*;
 use crate::services::*;
 use crate::{bindings::Seaport, state::AppState};
@@ -80,7 +80,7 @@ pub fn run(
         // Layers/middleware
         .layer(TraceLayer::new_for_http().make_span_with(TowerMakeSpanWithConstantId))
         .layer(RequestIdLayer)
-        .layer(session_layer)
+        .layer(session_layer.clone())
         .layer(middleware::from_fn(track_prometheus_metrics))
         .layer(cors)
         // State
@@ -91,7 +91,8 @@ pub fn run(
     let grpc = Server::builder()
         .layer(RequestIdLayer)
         .layer(TraceLayer::new_for_http().make_span_with(TowerMakeSpanWithConstantId))
-        .add_service(TraderServer::new(TraderRFQService::default()))
+        .layer(session_layer)
+        .add_service(RfqServer::new(RFQService::default()))
         .into_service()
         .map_response(|r| r.map(axum::body::boxed))
         .boxed_clone();

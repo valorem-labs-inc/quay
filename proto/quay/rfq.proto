@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+import "types.proto";
+import "seaport.proto";
+
+package quay;
+
+// Reference: https://github.com/valorem-labs-inc/valorem-core/blob/master/src/interfaces/IOptionSettlementEngine.sol#L223
+// Reference: https://github.com/Alcibiades-Capital/quay/blob/v0.2.0/docs/SequenceDiagrams.md#request-for-quote-rfq-json-data-structure
+
+service RFQ {
+    rpc WebTaker (QuoteRequest) returns (stream QuoteResponse);
+    rpc Taker (stream QuoteRequest) returns (stream QuoteResponse);
+    rpc Maker (stream QuoteResponse) returns (stream QuoteRequest);
+}
+
+// The taker requesting a quote is requesting a quote to buy or sell an asset
+enum Action {
+    BUY = 0;
+    SELL = 1;
+}
+
+message QuoteRequest {
+    // Ideally the maker would never know who the taker is, and vice-versa.
+    // However, seaport reveals the makers' address to the taker. traderAddress
+    // Ensures there is no information asymmetry between the maker and taker.
+    // Thought the trader may not always end up being the taker
+    optional H128 ulid = 1;
+    optional H160 takerAddress = 2;
+    ItemType itemType = 3;
+    optional H160 tokenAddress = 4;
+    optional H256 identifierOrCriteria = 5;
+    H256 startAmount = 6;
+    H256 endAmount = 7;
+    Action action = 8;
+}
+
+message QuoteResponse {
+    optional H128 ulid = 1;
+    optional H160 makerAddress = 2;
+    Order order = 3;
+}

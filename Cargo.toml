@@ -76,4 +76,4 @@ tonic-build = "0.8.4"
 
 [[example]]
 name = "client"
-path = "examples/client/client.rs"
+path = "examples/client/market_maker.rs"
