@@ -6,6 +6,7 @@ use libp2p::{
     swarm::{NetworkBehaviour, SwarmEvent},
 };
 use quay::{
+    configuration::get_configuration,
     gossip::QuayGossipNode,
     telemetry::{get_subscriber, init_subscriber},
 };
@@ -23,6 +24,8 @@ async fn main() -> Result<()> {
     init_subscriber(subscriber);
 
     info!("Starting Quay Gossip Client");
+
+    let _config = get_configuration().expect("Could not read config");
 
     let keypair = identity::Keypair::generate_ed25519();
     let mut node = QuayGossipNode::new(keypair)?;

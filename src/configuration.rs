@@ -70,12 +70,21 @@ pub struct PaperclipSettings {
 }
 
 #[derive(serde::Deserialize, Clone)]
+pub struct GossipNodeSettings {
+    pub collection_addresses: Option<Vec<String>>,
+    pub seaport_bootnodes: Option<Vec<String>>,
+    pub seaport_hostname: Option<Vec<String>>,
+}
+
+#[derive(serde::Deserialize, Clone)]
 pub struct Settings {
     pub database: DatabaseSettings,
     pub application: ApplicationSettings,
     pub rpc: RPCSettings,
     pub redis_url: Secret<String>,
     pub indexer: IndexerSettings,
+    // Wrapping in option for now as fields are still unused
+    pub gossip: Option<GossipNodeSettings>,
 }
 
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {
