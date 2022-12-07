@@ -75,7 +75,7 @@ jobs:
 
       - name: Install sqlx-cli
         uses: actions-rs/cargo@v1
-        if: steps.rust-cache.outputs.cache-hit == false
+        if: steps.rust-cache.outputs.cache-hit == "false"
         with:
           command: install
           args: >
@@ -144,7 +144,7 @@ jobs:
 
       - name: Install sqlx-cli
         uses: actions-rs/cargo@v1
-        if: steps.rust-cache.outputs.cache-hit == false
+        if: steps.rust-cache.outputs.cache-hit == "false"
         with:
           command: install
           args: >
@@ -214,7 +214,7 @@ jobs:
 
       - name: Install sqlx-cli
         uses: actions-rs/cargo@v1
-        if: steps.cache-rust.outputs.cache-hit == false
+        if: steps.cache-rust.outputs.cache-hit == "false"g
         with:
           command: install
           args: >
