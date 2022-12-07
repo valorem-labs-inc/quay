@@ -14,7 +14,7 @@ env:
 
 jobs:
   test:
-    name: Test
+    name: Format
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -189,7 +189,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: -- -D warnings
   tests:
-    name: Tests
+    name: Test
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -270,7 +270,7 @@ jobs:
             ~/.cargo/bin/cargo-sqlx
           key: ${{ runner.os }}-sqlx-${{ env.SQLX_VERSION }}-${{ env.SQLX_FEATURES }}
 
-      - name: Tests
+      - name: Test
         uses: actions-rs/cargo@v1
         env:
           APP_RPC__URI: ${{ secrets.APP_RPC__URI }}
