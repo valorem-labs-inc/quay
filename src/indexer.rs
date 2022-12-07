@@ -182,9 +182,9 @@ impl Indexer {
         block_number: U64,
     ) -> Result<
         (
-            Vec<OrderFulfilledFilter>,
-            Vec<OrderCancelledFilter>,
-            Vec<CounterIncrementedFilter>,
+            Vec<(OrderFulfilledFilter, LogMeta)>,
+            Vec<(OrderCancelledFilter, LogMeta)>,
+            Vec<(CounterIncrementedFilter, LogMeta)>,
         ),
         ContractError<Provider<RetryClient<Http>>>,
     > {
@@ -205,14 +205,15 @@ impl Indexer {
             .from_block(block_number)
             .to_block(block_number);
         let results = try_join!(
-            fulfilled.query(),
-            cancelled.query(),
-            counter_updated.query()
+            fulfilled.query_with_meta(),
+            cancelled.query_with_meta(),
+            counter_updated.query_with_meta()
         )
         .map_err(|e| {
             tracing::error!("Failed to get events: {:?}", e);
             e
         })?;
+
         Ok(results)
     }
 
