@@ -71,19 +71,11 @@ jobs:
 
       - name: Cache cargo dependencies
         uses: Swatinem/rust-cache@v2
-
-      - name: Cache sqlx-cli
-        uses: actions/cache@v3
-        id: cache-sqlx
-        with:
-          path: |
-            ~/.cargo/bin/sqlx
-            ~/.cargo/bin/cargo-sqlx
-          key: ${{ runner.os }}-sqlx-${{ env.SQLX_VERSION }}-${{ env.SQLX_FEATURES }}
+        id: cache-rust
 
       - name: Install sqlx-cli
         uses: actions-rs/cargo@v1
-        if: steps.cache-sqlx.outputs.cache-hit == false
+        if: steps.cache-rust.outputs.cache-hit == false
         with:
           command: install
           args: >
@@ -149,19 +141,11 @@ jobs:
 
       - name: Cache cargo dependencies
         uses: Swatinem/rust-cache@v2
-
-      - name: Cache sqlx-cli
-        uses: actions/cache@v3
-        id: cache-sqlx
-        with:
-          path: |
-            ~/.cargo/bin/sqlx
-            ~/.cargo/bin/cargo-sqlx
-          key: ${{ runner.os }}-sqlx-${{ env.SQLX_VERSION }}-${{ env.SQLX_FEATURES }}
+        id: cache-rust
 
       - name: Install sqlx-cli
         uses: actions-rs/cargo@v1
-        if: steps.cache-sqlx.outputs.cache-hit == false
+        if: steps.cache-rust.outputs.cache-hit == false
         with:
           command: install
           args: >
@@ -228,19 +212,11 @@ jobs:
 
       - name: Cache cargo dependencies
         uses: Swatinem/rust-cache@v2
-
-      - name: Cache sqlx-cli
-        uses: actions/cache@v3
-        id: cache-sqlx
-        with:
-          path: |
-            ~/.cargo/bin/sqlx
-            ~/.cargo/bin/cargo-sqlx
-          key: ${{ runner.os }}-sqlx-${{ env.SQLX_VERSION }}-${{ env.SQLX_FEATURES }}
+        id: cache-rust
 
       - name: Install sqlx-cli
         uses: actions-rs/cargo@v1
-        if: steps.cache-sqlx.outputs.cache-hit == false
+        if: steps.cache-rust.outputs.cache-hit == false
         with:
           command: install
           args: >
