@@ -1,6 +1,6 @@
 use http::Uri;
-use quay::rfq::trader_client::TraderClient;
-use quay::rfq::{QuoteResponse, ValoremQuoteRequest};
+use quay::rfq::rfq_client::RfqClient;
+use quay::rfq::{QuoteRequest, QuoteResponse};
 use std::env;
 use std::process::exit;
 use tokio::sync::mpsc;
@@ -9,7 +9,7 @@ use tonic::transport::Channel;
 /// An example Market Maker (MM) client interface to Quay.
 ///
 /// The Market Maker will receive Request For Quote (RFQ) from the Quay server formatted as
-/// `ValoremQuoteRequest` and the MM needs to respond with `QuoteResponse`.
+/// `QuoteRequest` and the MM needs to respond with `QuoteResponse`.
 ///
 /// # Usage
 /// `client <quay_server>`
@@ -33,7 +33,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Connect to the Quay server's RFQ endpoint
     let rfq_uri = format!("{}rfq", args[0]).parse::<Uri>().unwrap();
-    let mut client = TraderClient::new(Channel::builder(rfq_uri).connect().await.unwrap());
+    let mut client = RfqClient::new(Channel::builder(rfq_uri).connect().await.unwrap());
 
     // Setup the comms channels. The RFQ endpoint depends on the client never disconnecting
     // as it uses gRPC bidirectional streams. However the requests we send to the server are
@@ -49,7 +49,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // In summary:
     // Server responses are requests to the client. Client requests are responses to the server.
     let (tx_server_response, rx_server_response) = mpsc::channel::<QuoteResponse>(64);
-    let (tx_server_request, mut rx_server_request) = mpsc::channel::<ValoremQuoteRequest>(64);
+    let (tx_server_request, mut rx_server_request) = mpsc::channel::<QuoteRequest>(64);
 
     let task = tokio::spawn(async move {
         // Loop until the stream feeding us the server requests ends
@@ -66,7 +66,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Call the required function which will return the servers response stream (which is really
     // requests to the client).
     let mut quote_stream = client
-        .quote(tokio_stream::wrappers::ReceiverStream::new(
+        .maker(tokio_stream::wrappers::ReceiverStream::new(
             rx_server_response,
         ))
         .await
@@ -87,7 +87,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(task.await.unwrap())
 }
 
-fn handle_server_request(_request_for_quote: ValoremQuoteRequest) -> QuoteResponse {
+fn handle_server_request(_request_for_quote: QuoteRequest) -> QuoteResponse {
     QuoteResponse {
         ..Default::default()
     }
