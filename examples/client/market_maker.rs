@@ -25,7 +25,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         exit(1);
     }
 
-    if args[0].chars().last().unwrap() != '/' {
+    if !args[0].ends_with('/') {
         args[0].push('/');
     }
 
@@ -84,7 +84,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     drop(tx_server_request);
 
     // We never expect to get here or the task to end unless the server has disconnected.
-    Ok(task.await.unwrap())
+    task.await.unwrap();
+    Ok(())
 }
 
 fn handle_server_request(_request_for_quote: QuoteRequest) -> QuoteResponse {
