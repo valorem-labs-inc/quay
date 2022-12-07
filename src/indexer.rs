@@ -223,17 +223,17 @@ impl Indexer {
         let (fulfilled, cancelled, counter_updated) = self.get_block_events(block_number).await?;
         let mut cancellations = vec![];
         for cancellation in cancelled {
-            let order_hash = cancellation.order_hash.encode_hex();
+            let order_hash = cancellation.0.order_hash.encode_hex();
             debug!("Cancellation for {}", &order_hash);
             cancellations.push(update_order_cancellation(&self.pool, order_hash, true));
         }
         let mut fulfillments = vec![];
         for fulfillment in fulfilled {
-            let order_hash = fulfillment.order_hash.encode_hex();
+            let order_hash = fulfillment.0.order_hash.encode_hex();
             debug!("Fulfillment for {}", &order_hash);
             fulfillments.push(update_order_fulfillment(
                 &self.pool,
-                fulfillment.order_hash.encode_hex(),
+                fulfillment.0.order_hash.encode_hex(),
                 true,
             ));
         }
@@ -241,8 +241,8 @@ impl Indexer {
         for counter_update in counter_updated {
             counter_updates.push(increment_offerer_counter(
                 &self.pool,
-                counter_update.offerer,
-                counter_update.new_counter,
+                counter_update.0.offerer,
+                counter_update.0.new_counter,
             ));
         }
         let result = try_join!(
