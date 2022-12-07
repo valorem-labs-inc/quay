@@ -278,90 +278,90 @@ jobs:
           command: test
 
   coverage:
-  name: Coverage
-  runs-on: ubuntu-latest
-  services:
-    postgres:
-      image: postgres:13
-      env:
-        POSTGRES_USER: postgres
-        POSTGRES_PASSWORD: password
-        POSTGRES_DB: quay
-      ports:
-        - 5432:5432
-    redis:
-      image: redis:7
-      ports:
-        - 6379:6379
-  env:
-    SQLX_VERSION: 0.5.7
-    SQLX_FEATURES: postgres
-  steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+    name: Coverage
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: quay
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+    env:
+      SQLX_VERSION: 0.5.7
+      SQLX_FEATURES: postgres
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Install Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: stable
-        override: true
-        components: rustfmt, clippy
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          components: rustfmt, clippy
 
-    - name: Cache cargo dependencies
-      uses: actions/cache@v3
-      continue-on-error: false
-      with:
-        path: |
-          ~/.cargo/bin/
-          ~/.cargo/registry/index/
-          ~/.cargo/registry/cache/
-          ~/.cargo/git/db/
-          target/
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: ${{ runner.os }}-cargo-
+      - name: Cache cargo dependencies
+        uses: actions/cache@v3
+        continue-on-error: false
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
 
-    - name: Install Protoc
-      uses: arduino/setup-protoc@v1
-      with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Install sqlx-cli
-      uses: actions-rs/cargo@v1
-      if: steps.cache-sqlx.outputs.cache-hit == false
-      with:
-        command: install
-        args: >
-          sqlx-cli
-          --force
-          --version=${{ env.SQLX_VERSION }}
-          --features=${{ env.SQLX_FEATURES }}
-          --no-default-features
-          --locked
+      - name: Install sqlx-cli
+        uses: actions-rs/cargo@v1
+        if: steps.cache-sqlx.outputs.cache-hit == false
+        with:
+          command: install
+          args: >
+            sqlx-cli
+            --force
+            --version=${{ env.SQLX_VERSION }}
+            --features=${{ env.SQLX_FEATURES }}
+            --no-default-features
+            --locked
 
-    - name: Migrate database
-      run: |
-        sudo apt-get install libpq-dev -y
-        SKIP_DOCKER=true ./scripts/init_db.sh
+      - name: Migrate database
+        run: |
+          sudo apt-get install libpq-dev -y
+          SKIP_DOCKER=true ./scripts/init_db.sh
 
-    - name: Check sqlx-data.json is up-to-date
-      run: |
-        cargo sqlx prepare --merged -- --lib --tests
-      env:
-        DATABASE_URL: postgres://postgres:password@localhost:5432/quay
+      - name: Check sqlx-data.json is up-to-date
+        run: |
+          cargo sqlx prepare --merged -- --lib --tests
+        env:
+          DATABASE_URL: postgres://postgres:password@localhost:5432/quay
 
-    - name: Cache sqlx-cli
-      uses: actions/cache@v3
-      id: cache-sqlx
-      with:
-        path: |
-          ~/.cargo/bin/sqlx
-          ~/.cargo/bin/cargo-sqlx
-        key: ${{ runner.os }}-sqlx-${{ env.SQLX_VERSION }}-${{ env.SQLX_FEATURES }}
+      - name: Cache sqlx-cli
+        uses: actions/cache@v3
+        id: cache-sqlx
+        with:
+          path: |
+            ~/.cargo/bin/sqlx
+            ~/.cargo/bin/cargo-sqlx
+          key: ${{ runner.os }}-sqlx-${{ env.SQLX_VERSION }}-${{ env.SQLX_FEATURES }}
 
-    - name: Coverage
-      uses: actions-rs/tarpaulin@v0.1
-      env:
-        APP_RPC__URI: ${{ secrets.APP_RPC__URI }}
-      with:
-        args: '--ignore-tests --avoid-cfg-tarpaulin'
+      - name: Coverage
+        uses: actions-rs/tarpaulin@v0.1
+        env:
+          APP_RPC__URI: ${{ secrets.APP_RPC__URI }}
+        with:
+          args: '--ignore-tests --avoid-cfg-tarpaulin'
