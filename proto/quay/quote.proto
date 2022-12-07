@@ -8,13 +8,12 @@ package quay;
 // Reference: https://github.com/valorem-labs-inc/valorem-core/blob/master/src/interfaces/IOptionSettlementEngine.sol#L223
 // Reference: https://github.com/Alcibiades-Capital/quay/blob/v0.2.0/docs/SequenceDiagrams.md#request-for-quote-rfq-json-data-structure
 
-service Quote {
-    rpc Quote (ValoremQuoteRequest) returns (QuoteResponse);
+service RFQ {
+    rpc WebTaker (ValoremQuoteRequest) returns (stream QuoteResponse);
+    rpc Taker (stream ValoremQuoteRequest) returns (stream QuoteResponse);
+    rpc Maker (stream QuoteResponse) returns (stream ValoremQuoteRequest);
 }
 
-service Trader {
-    rpc Quote (stream QuoteResponse) returns (stream ValoremQuoteRequest);
-}
 
 // TODO(Should this only live in a downstream fork)
 message ValoremQuoteRequest {
