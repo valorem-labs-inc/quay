@@ -111,12 +111,19 @@ impl QuayGossipNode {
 
     pub async fn run(mut self, config: GossipNodeSettings) -> Result<()> {
         info!("Starting Quay Gossip Client");
+
         self.swarm
             .listen_on(format!("/ip4/{}/tcp/{}", config.host_name, config.port).parse()?)?;
+
+        self.swarm
+            .behaviour_mut()
+            .subscribe(&Topic::new("gossipsub:message"))?;
+        info!("Local peer ID: {}", self.local_peer_id);
 
         loop {
             tokio::select! {
                     event = self.swarm.select_next_some() => {
+                        println!("{:?}", event);
                         match event {
                             SwarmEvent::NewListenAddr { address, .. } => {
                                 info!("Listening on {address:?}");
