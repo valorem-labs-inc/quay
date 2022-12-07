@@ -2,6 +2,7 @@ pub mod auth;
 pub mod bindings;
 pub mod configuration;
 pub mod database;
+pub mod gossip;
 pub mod indexer;
 pub mod middleware;
 pub mod redis_pool;
