@@ -4,7 +4,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .build_server(true)
         //.out_dir("src/google")  // you can change the generated code's location
         .compile(
-            &["proto/quay/quote.proto"],
+            &["proto/quay/rfq.proto"],
             &["proto/quay"], // specify the root location to search proto dependencies
         )
         .unwrap();
