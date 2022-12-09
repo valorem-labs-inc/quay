@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package session;
+
+service Session {
+  // Getting an EIP-4361 nonce for session
+  rpc Nonce (Empty) returns (NonceText);
+
+  // Verifying user EIP-4361 session
+  rpc Verify (VerifyText) returns (Empty);
+
+  rpc Authenticate (Empty) returns (Empty);
+}
+
+message NonceText {
+  string nonce = 1;
+}
+
+message VerifyText {
+  string body = 1;
+}
+
+message Empty {}

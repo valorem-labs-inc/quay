@@ -30,6 +30,7 @@ use crate::redis_pool::RedisConnectionManager;
 use crate::rfq::rfq_server::RfqServer;
 use crate::routes::*;
 use crate::services::*;
+use crate::session::session_server::SessionServer;
 use crate::{bindings::Seaport, state::AppState};
 use crate::{
     configuration::{DatabaseSettings, Settings},
@@ -90,9 +91,10 @@ pub fn run(
 
     let grpc = Server::builder()
         .layer(RequestIdLayer)
-        .layer(TraceLayer::new_for_http().make_span_with(TowerMakeSpanWithConstantId))
         .layer(session_layer)
+        .layer(TraceLayer::new_for_http().make_span_with(TowerMakeSpanWithConstantId))
         .add_service(RfqServer::new(RFQService::new()))
+        .add_service(SessionServer::new(SessionService::default()))
         .into_service()
         .map_response(|r| r.map(axum::body::boxed))
         .boxed_clone();

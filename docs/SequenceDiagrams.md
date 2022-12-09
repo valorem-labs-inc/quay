@@ -27,7 +27,7 @@ Trader may want to sell their (created) options to the market maker instead.
 
 If the Trader doesn't fill the `exerciseTimestamp` or `expiryTimestamp`
 then the Market Maker is free to set those values to whatever it chooses
-on the Option, otherwise the Market Maker must have the values set to 
+on the Option, otherwise the Market Maker must have the values set to
 what the Trader wishes if it makes an offer.
 
 If the `listingId` is `Some` then all the information is taken from
