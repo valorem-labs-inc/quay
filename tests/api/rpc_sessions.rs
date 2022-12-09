@@ -39,7 +39,7 @@ async fn verify_session_works() {
         .expect("Unable to fetch session cookie from Nonce response")
         .to_string();
 
-    let nonce = nonce_response.unwrap().into_inner().nonce;
+    let nonce = nonce_response.into_inner().nonce;
 
     // Setup the session client with our newly created session.
     let mut client = SessionClient::with_interceptor(
