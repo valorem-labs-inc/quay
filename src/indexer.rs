@@ -182,9 +182,9 @@ impl Indexer {
         block_number: U64,
     ) -> Result<
         (
-            Vec<OrderFulfilledFilter>,
-            Vec<OrderCancelledFilter>,
-            Vec<CounterIncrementedFilter>,
+            Vec<(OrderFulfilledFilter, LogMeta)>,
+            Vec<(OrderCancelledFilter, LogMeta)>,
+            Vec<(CounterIncrementedFilter, LogMeta)>,
         ),
         ContractError<Provider<RetryClient<Http>>>,
     > {
@@ -205,14 +205,15 @@ impl Indexer {
             .from_block(block_number)
             .to_block(block_number);
         let results = try_join!(
-            fulfilled.query(),
-            cancelled.query(),
-            counter_updated.query()
+            fulfilled.query_with_meta(),
+            cancelled.query_with_meta(),
+            counter_updated.query_with_meta()
         )
         .map_err(|e| {
             tracing::error!("Failed to get events: {:?}", e);
             e
         })?;
+
         Ok(results)
     }
 
@@ -222,26 +223,32 @@ impl Indexer {
         let (fulfilled, cancelled, counter_updated) = self.get_block_events(block_number).await?;
         let mut cancellations = vec![];
         for cancellation in cancelled {
-            let order_hash = cancellation.order_hash.encode_hex();
+            let cancellation_event = cancellation.0;
+
+            let order_hash = cancellation_event.order_hash.encode_hex();
             debug!("Cancellation for {}", &order_hash);
             cancellations.push(update_order_cancellation(&self.pool, order_hash, true));
         }
         let mut fulfillments = vec![];
         for fulfillment in fulfilled {
-            let order_hash = fulfillment.order_hash.encode_hex();
+            let fulfillment_event = fulfillment.0;
+
+            let order_hash = fulfillment_event.order_hash.encode_hex();
             debug!("Fulfillment for {}", &order_hash);
             fulfillments.push(update_order_fulfillment(
                 &self.pool,
-                fulfillment.order_hash.encode_hex(),
+                fulfillment_event.order_hash.encode_hex(),
                 true,
             ));
         }
         let mut counter_updates = vec![];
         for counter_update in counter_updated {
+            let counter_update_event = counter_update.0;
+
             counter_updates.push(increment_offerer_counter(
                 &self.pool,
-                counter_update.offerer,
-                counter_update.new_counter,
+                counter_update_event.offerer,
+                counter_update_event.new_counter,
             ));
         }
         let result = try_join!(

@@ -8,105 +8,27 @@ on:
     types: [ opened, synchronize, reopened ]
     branches:
       - master
-      - v0.2.0
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
   test:
-    name: Test
+    name: Format
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:12
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: password
-          POSTGRES_DB: quay
-        ports:
-          - 5432:5432
-      redis:
-        image: redis:6
-        ports:
-          - 6379:6379
-    env:
-      SQLX_VERSION: 0.5.7
-      SQLX_FEATURES: postgres
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Cache dependencies
-        id: cache-dependencies
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Install stable toolchain
+      - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           override: true
-
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v1
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Cache sqlx-cli
-        uses: actions/cache@v2
-        id: cache-sqlx
-        with:
-          path: |
-            ~/.cargo/bin/sqlx
-            ~/.cargo/bin/cargo-sqlx
-          key: ${{ runner.os }}-sqlx-${{ env.SQLX_VERSION }}-${{ env.SQLX_FEATURES }}
-
-      - name: Install sqlx-cli
+          components: rustfmt, clippy
+      - name: Formatting
         uses: actions-rs/cargo@v1
-        if: steps.cache-sqlx.outputs.cache-hit == false
-        with:
-          command: install
-          args: >
-            sqlx-cli
-            --force
-            --version=${{ env.SQLX_VERSION }}
-            --features=${{ env.SQLX_FEATURES }}
-            --no-default-features
-            --locked
-
-      - name: Migrate database
-        run: |
-          sudo apt-get install libpq-dev -y
-          SKIP_DOCKER=true ./scripts/init_db.sh
-      - name: Check sqlx-data.json is up-to-date
-        run: |
-          cargo sqlx prepare --merged -- --lib --tests
-        env:
-          DATABASE_URL: postgres://postgres:password@localhost:5432/quay
-      - uses: actions-rs/cargo@v1
-        env:
-          APP_RPC__URI: ${{ secrets.APP_RPC__URI }}
-        with:
-          command: test
-
-  fmt:
-    name: Rustfmt
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-          components: rustfmt
-      - uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: --all -- --check
@@ -116,70 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:12
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: password
-          POSTGRES_DB: quay
-        ports:
-          - 5432:5432
-    env:
-      SQLX_VERSION: 0.5.7
-      SQLX_FEATURES: postgres
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          components: clippy
-          override: true
-
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v1
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Cache sqlx-cli
-        uses: actions/cache@v2
-        id: cache-sqlx
-        with:
-          path: |
-            ~/.cargo/bin/sqlx
-          key: ${{ runner.os }}-sqlx-${{ env.SQLX_VERSION }}-${{ env.SQLX_FEATURES }}
-
-      - name: Install sqlx-cli
-        uses: actions-rs/cargo@v1
-        if: steps.cache-sqlx.outputs.cache-hit == false
-        with:
-          command: install
-          args: >
-            sqlx-cli
-            --force
-            --version=${{ env.SQLX_VERSION }}
-            --features=${{ env.SQLX_FEATURES }}
-            --no-default-features
-            --locked
-
-      - name: Migrate database
-        run: |
-          sudo apt-get install libpq-dev -y
-          SKIP_DOCKER=true ./scripts/init_db.sh
-
-      - name: Run clippy
-        uses: actions-rs/clippy-check@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: -- -D warnings
-
-  coverage:
-    name: Code coverage
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:12
+        image: postgres:13
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
@@ -187,7 +46,7 @@ jobs:
         ports:
           - 5432:5432
       redis:
-        image: redis:6
+        image: redis:7
         ports:
           - 6379:6379
     env:
@@ -195,30 +54,28 @@ jobs:
       SQLX_FEATURES: postgres
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
+        uses: actions/checkout@v3
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v1
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Cache sqlx-cli
-        uses: actions/cache@v2
-        id: cache-sqlx
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
         with:
-          path: |
-            ~/.cargo/bin/sqlx
-          key: ${{ runner.os }}-sqlx-${{ env.SQLX_VERSION }}-${{ env.SQLX_FEATURES }}
+          profile: minimal
+          toolchain: stable
+          override: true
+          components: rustfmt, clippy
+
+      - name: Cache cargo dependencies
+        uses: Swatinem/rust-cache@v2
+        id: rust-cache
 
       - name: Install sqlx-cli
         uses: actions-rs/cargo@v1
-        if: steps.cache-sqlx.outputs.cache-hit == false
+        if: steps.rust-cache.outputs.cache-hit != true
         with:
           command: install
           args: >
@@ -231,9 +88,154 @@ jobs:
 
       - name: Migrate database
         run: |
-          sudo apt-get install libpq-dev -y
           SKIP_DOCKER=true ./scripts/init_db.sh
-      - name: Run cargo-tarpaulin
+
+      - name: Check sqlx-data.json is up-to-date
+        run: |
+          cargo sqlx prepare --merged -- --lib --tests
+        env:
+          DATABASE_URL: postgres://postgres:password@localhost:5432/quay
+
+      - name: Clippy
+        uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: -- -D warnings
+
+  tests:
+    name: Test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: quay
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+    env:
+      SQLX_VERSION: 0.5.7
+      SQLX_FEATURES: postgres
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          components: rustfmt, clippy
+
+      - name: Cache cargo dependencies
+        uses: Swatinem/rust-cache@v2
+        id: rust-cache
+
+      - name: Install sqlx-cli
+        uses: actions-rs/cargo@v1
+        if: steps.rust-cache.outputs.cache-hit != true
+        with:
+          command: install
+          args: >
+            sqlx-cli
+            --force
+            --version=${{ env.SQLX_VERSION }}
+            --features=${{ env.SQLX_FEATURES }}
+            --no-default-features
+            --locked
+
+      - name: Migrate database
+        run: |
+          SKIP_DOCKER=true ./scripts/init_db.sh
+
+      - name: Check sqlx-data.json is up-to-date
+        run: |
+          cargo sqlx prepare --merged -- --lib --tests
+        env:
+          DATABASE_URL: postgres://postgres:password@localhost:5432/quay
+
+      - name: Test
+        uses: actions-rs/cargo@v1
+        env:
+          APP_RPC__URI: ${{ secrets.APP_RPC__URI }}
+        with:
+          command: test
+
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: quay
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+    env:
+      SQLX_VERSION: 0.5.7
+      SQLX_FEATURES: postgres
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          components: rustfmt, clippy
+
+      - name: Cache cargo dependencies
+        uses: Swatinem/rust-cache@v2
+        id: cache-rust
+
+      - name: Install sqlx-cli
+        uses: actions-rs/cargo@v1
+        if: steps.cache-rust.outputs.cache-hit != true
+        with:
+          command: install
+          args: >
+            sqlx-cli
+            --force
+            --version=${{ env.SQLX_VERSION }}
+            --features=${{ env.SQLX_FEATURES }}
+            --no-default-features
+            --locked
+
+      - name: Migrate database
+        run: |
+          SKIP_DOCKER=true ./scripts/init_db.sh
+
+      - name: Check sqlx-data.json is up-to-date
+        run: |
+          cargo sqlx prepare --merged -- --lib --tests
+        env:
+          DATABASE_URL: postgres://postgres:password@localhost:5432/quay
+
+      - name: Coverage
         uses: actions-rs/tarpaulin@v0.1
         env:
           APP_RPC__URI: ${{ secrets.APP_RPC__URI }}
