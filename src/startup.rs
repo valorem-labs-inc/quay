@@ -91,8 +91,8 @@ pub fn run(
 
     let grpc = Server::builder()
         .layer(RequestIdLayer)
-        .layer(session_layer)
         .layer(TraceLayer::new_for_http().make_span_with(TowerMakeSpanWithConstantId))
+        .layer(session_layer)
         .add_service(RfqServer::new(RFQService::new()))
         .add_service(SessionServer::new(SessionService::default()))
         .into_service()
