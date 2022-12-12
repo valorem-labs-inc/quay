@@ -1,6 +1,6 @@
 @startuml
 
-actor Trader
+actor Taker
 box Valorem #LightGreen
 participant Quay
 end box
@@ -14,16 +14,16 @@ MM -> Quay: Authenticate
 MM -> Quay: gRPC: MM RFQ Stream
 Quay -> MM: gRPC: MM RFQ Stream
 
-== Case: Market Maker has no offer for Trader ==
-Trader --> SE: newOptionType(...)
-SE --> Trader: optionId
-Trader -> Quay: gRPC: RFQ\nQuoteRequest{ulid=None}
-Quay -> Trader: gRPC: Trader RFQ Stream
+== Case: Market Maker has no offer for Taker ==
+Taker --> SE: newOptionType(...)
+SE --> Taker: optionId
+Taker -> Quay: gRPC: RFQ\nQuoteRequest{ulid=None}
+Quay -> Taker: gRPC: Taker RFQ Stream
 Quay -> MM: gRPC: MM RFQ Stream\nQuoteRequest{ulid=Some}
 MM -> SE: option(...)
 SE -> MM: optionInfo
 MM -[#red]x MM: No offer
 MM -> Quay: gRPC: MM RFQ Stream\nQuoteResponse{\n\tulid=Some,\n\tOffer=None\n}
-Quay -> Trader: gRPC: Trader RFQ Stream\nQuoteResponse{Offer=None}
-Quay -[#red]X Trader: gRPC: Trader RFQ Stream\nClose
+Quay -> Taker: gRPC: Taker RFQ Stream\nQuoteResponse{Offer=None}
+Quay -[#red]X Taker: gRPC: Taker RFQ Stream\nClose
 @enduml
