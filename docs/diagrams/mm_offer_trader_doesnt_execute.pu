@@ -10,31 +10,28 @@ participant SettlementEngine as SE
 end box
 
 == Initialisation ==
-MM --> Quay: Authenticate
-MM --> Quay: gRPC RFQ Stream
-Quay --> MM: gRPC RFQ Stream
+MM -> Quay: Authenticate
+MM -> Quay: gRPC: MM RFQ Stream
+Quay -> MM: gRPC: MM RFQ Stream
 
 == Case: Market Maker Offer, Trader doesn't execute ==
-autonumber
-Trader -> Quay: gRPC: <server>/rfq
-note right
-ValoremQuoteRequest
-end note
-Quay -> MM: gRPC: RFQ Stream
-note right
-ValoremQuoteRequest
-end note
-MM -> Quay: gRPC: RFQ Stream
-note right
-ValoremQuoteRequest: Some
-end note
-MM --> SE: On-chain: write
-Quay -> Trader: gRPC: Offer
+Trader --> SE: newOptionType(...)
+SE --> Trader: optionId
+Trader -> Quay: gRPC: RFQ\nQuoteRequest{ulid=None}
+Quay -> Trader: gRPC: Trader RFQ Stream
+Quay -> MM: gRPC: MM RFQ Stream\nQuoteRequest{ulid=Some}
+MM -> SE: option(...)
+SE -> MM: optionInfo
+MM -> SE: write(...)
+SE -> MM: claimId
+MM -> Quay: gRPC: MM RFQ Stream\nQuoteResponse{\n\tulid=Some,\n\tOffer=Some\n}
+Quay -> Trader: gRPC: Trader RFQ Stream\nQuoteResponse{Offer=Some}
+Quay -[#red]X Trader: gRPC: Trader RFQ Stream\nClose
 hnote over Trader #lightBlue
 [Start of exercise window]
 end hnote
 hnote over Trader #lightBlue
 [ End of exercise window ]
 end hnote
-MM --> SE: On-chain: redeem
+MM -> SE: redeem(...)
 @enduml

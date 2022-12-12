@@ -1,26 +1,30 @@
 # Sequence Diagrams
 ### The market maker does not give an offer:
+The following diagram assumes that the Options token does not currently exist. However, if the Option does exist,
+then the Trader can forgo the request to `newOptionType` and instead simply just use the Option ID.
+
+The diagram highlights important fields within the messages being passed. The message structure with theses fields
+may not contain _all_ required fields
+
 ![mm_no_offer](./diagrams/mm_no_offer.png)
 
 ### The market maker gives an offer, trader does not execute:
-The Market Maker may interact directly with a wallet or contract.
+The following diagram assumes that the Options token does not currently exist. However, if the Option does exist,
+then the Trader can forgo the request to `newOptionType` and instead simply just use the Option ID.
+
+The diagram highlights important fields within the messages being passed. The message structure with theses fields
+may not contain _all_ required fields
 
 ![mm_offer_trader_doesnt_execute](./diagrams/mm_offer_trader_doesnt_execute.png)
 
 ### The market maker gives an offer, trader executes offer:
-The Market Maker may interact directly with a wallet or contract.
+The following diagram assumes that the Options token does not currently exist. However, if the Option does exist,
+then the Trader can forgo the request to `newOptionType` and instead simply just use the Option ID.
+
+The diagram highlights important fields within the messages being passed. The message structure with theses fields
+may not contain _all_ required fields
 
 ![mm_offer_trader_execute](./diagrams/mm_offer_trader_execute.png)
-
-### Trader creates a listing for market maker offer, trader does not execute:
-Trader may want to sell their (created) options to the market maker instead.
-
-![trader_listing_mm_offer_no_execute](./diagrams/trader_listing_mm_offer_no_execute.png)
-
-### Trader creates a listing for market maker offer, trader executes:
-Trader may want to sell their (created) options to the market maker instead.
-
-![trader_listing_mm_offer](./diagrams/trader_listing_mm_offer.png)
 
 ### General
 #### Request for Quote (RFQ) data structure
