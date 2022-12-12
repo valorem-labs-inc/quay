@@ -9,13 +9,16 @@ service Session {
   // Verifying user EIP-4361 session
   rpc Verify (VerifyText) returns (Empty);
 
+  // Checking user EIP-4361 authentication
   rpc Authenticate (Empty) returns (Empty);
 }
 
+// Nonce response message containing the generated `nonce` string.
 message NonceText {
   string nonce = 1;
 }
 
+// Verify request message containing an JSON encoded string of the `SignedMessage` structure (src/auth).
 message VerifyText {
   string body = 1;
 }

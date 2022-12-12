@@ -44,6 +44,7 @@ impl Session for SessionService {
     }
 
     async fn verify(&self, request: Request<VerifyText>) -> Result<Response<Empty>, Status> {
+        // Decode the JSON message body into the expected SignedMessage structure
         let signed_message: SignedMessage =
             match serde_json::from_str(request.get_ref().body.as_str()) {
                 Ok(msg) => msg,
