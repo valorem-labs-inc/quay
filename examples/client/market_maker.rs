@@ -37,7 +37,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let quay_uri = args[0].parse::<Uri>().unwrap();
-    let session_cookie = setup(quay_uri.clone(), args[1].to_string()).await;
+    let (session_cookie, maker_address) = setup(quay_uri.clone(), args[1].to_string()).await;
 
     // Now there is a valid authenticated session, connect to the RFQ stream
     let mut client = RfqClient::with_interceptor(
@@ -49,8 +49,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Client requests are responses to the server.
     let (tx_quote_response, rx_quote_response) = mpsc::channel::<QuoteResponse>(64);
     let (tx_quote_request, mut rx_quote_request) = mpsc::channel::<QuoteRequest>(64);
-
-    let maker_address = args[1].parse::<Address>().unwrap();
 
     // The main task that handles incoming server requests
     let task = tokio::spawn(async move {
@@ -91,6 +89,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 // Handle the quote.
 // The current example simply sends back an empty order (indicating no offer).
 fn handle_server_request(request_for_quote: QuoteRequest, maker_address: H160) -> QuoteResponse {
+    println!("Request received, returning no offer");
     QuoteResponse {
         ulid: request_for_quote.ulid,
         maker_address: Some(rfq::H160::from(maker_address)),
@@ -99,7 +98,7 @@ fn handle_server_request(request_for_quote: QuoteRequest, maker_address: H160) -
 }
 
 // Helper function used to setup a valid session with Quay
-async fn setup(quay_uri: Uri, maker_address: String) -> String {
+async fn setup(quay_uri: Uri, private_key: String) -> (String, Address) {
     // Connect and authenticate with Quay
     let mut client: SessionClient<Channel> =
         SessionClient::new(Channel::builder(quay_uri.clone()).connect().await.unwrap());
@@ -128,7 +127,7 @@ async fn setup(quay_uri: Uri, maker_address: String) -> String {
     );
 
     // Setup a local wallet
-    let wallet = LocalWallet::from_str(maker_address.as_str()).unwrap();
+    let wallet = LocalWallet::from_str(private_key.as_str()).unwrap();
 
     // Create a sign in with ethereum message
     let message = siwe::Message {
@@ -189,5 +188,5 @@ async fn setup(quay_uri: Uri, maker_address: String) -> String {
         }
     }
 
-    session_cookie
+    (session_cookie, wallet.address())
 }
