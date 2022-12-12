@@ -1,30 +1,29 @@
 @startuml
 
-actor Trader
+actor Taker
 box Valorem #LightGreen
 participant Quay
 end box
 actor "Market Maker" as MM
+box Valorem #LightBlue
+participant SettlementEngine as SE
+end box
 
 == Initialisation ==
-MM --> Quay: Authenticate
-MM --> Quay: gRPC RFQ Stream
-Quay --> MM: gRPC RFQ Stream
+MM -> Quay: Authenticate
+MM -> Quay: gRPC: MM RFQ Stream
+Quay -> MM: gRPC: MM RFQ Stream
 
-== Case: Market Maker has no offer for Trader ==
-autonumber
-Trader -> Quay: gRPC: <server>/rfq
-note right
-ValoremQuoteRequest
-end note
-Quay -> MM: gRPC: RFQ Stream
-note right
-ValoremQuoteRequest
-end note
+== Case: Market Maker has no offer for Taker ==
+Taker --> SE: newOptionType(...)
+SE --> Taker: optionId
+Taker -> Quay: gRPC: RFQ\nQuoteRequest{ulid=None}
+Quay -> Taker: gRPC: Taker RFQ Stream
+Quay -> MM: gRPC: MM RFQ Stream\nQuoteRequest{ulid=Some}
+MM -> SE: option(...)
+SE -> MM: optionInfo
 MM -[#red]x MM: No offer
-MM -> Quay: gRPC: RFQ Stream
-note right
-QuoteResponse: None
-end note
-Quay -> Trader: gRPC: No offers
+MM -> Quay: gRPC: MM RFQ Stream\nQuoteResponse{\n\tulid=Some,\n\tOffer=None\n}
+Quay -> Taker: gRPC: Taker RFQ Stream\nQuoteResponse{Offer=None}
+Quay -[#red]X Taker: gRPC: Taker RFQ Stream\nClose
 @enduml
