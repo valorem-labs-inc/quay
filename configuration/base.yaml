@@ -1,6 +1,4 @@
 application:
-  host: 127.0.0.1
-  base_url: "http://127.0.0.1"
   port: 8000
   hmac_secret: "super-long-and-secret-random-key-needed-to-verify-message-integrity"
 database:
@@ -9,7 +7,6 @@ database:
   username: "postgres"
   password: "password"
   database_name: "quay"
-  require_ssl: false
 redis_url: "redis://127.0.0.1:6379"
 rpc:
   uri: "http://127.0.0.1:8545"

@@ -1,5 +1,3 @@
 /target
 .idea
 
-# Ignore local configuration file
-configuration/local.yaml
