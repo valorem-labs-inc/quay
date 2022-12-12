@@ -25,18 +25,18 @@ message QuoteRequest {
     // However, seaport reveals the makers' address to the taker. traderAddress
     // Ensures there is no information asymmetry between the maker and taker.
     // Thought the trader may not always end up being the taker
-    optional H128 ulid = 1;
-    optional H160 takerAddress = 2;
+    H128 ulid = 1;                 // Optional
+    H160 takerAddress = 2;         // Optional
     ItemType itemType = 3;
-    optional H160 tokenAddress = 4;
-    optional H256 identifierOrCriteria = 5;
+    H160 tokenAddress = 4;         // Optional
+    H256 identifierOrCriteria = 5; // Optional
     H256 startAmount = 6;
     H256 endAmount = 7;
     Action action = 8;
 }
 
 message QuoteResponse {
-    optional H128 ulid = 1;
-    optional H160 makerAddress = 2;
+    H128 ulid = 1;          // Optional
+    H160 makerAddress = 2;  // Optional
     Order order = 3;
 }

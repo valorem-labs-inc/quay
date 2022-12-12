@@ -36,15 +36,15 @@ the listing instead.
 The Request for Quote request structure:
 
 ```protobuf
-message ValoremQuoteRequest {
-  required H160 traderAddress = 1;
-  required H160 underlyingAsset = 2;
-  optional H96 underlyingAmount = 3;
-  required H160 exerciseAsset = 4;
-  required H96 exerciseAmount = 5;
-  optional H40 exerciseTimestamp = 6;
-  optional H40 expiryTimestamp = 7;
-  optional U256 listingId = 8;
+message QuoteRequest {
+  optional H128 ulid = 1;
+  optional H160 takerAddress = 2;
+  ItemType itemType = 3;
+  optional H160 tokenAddress = 4;
+  optional H256 identifierOrCriteria = 5;
+  H256 startAmount = 6;
+  H256 endAmount = 7;
+  Action action = 8;
 }
 ```
 
@@ -59,6 +59,8 @@ structure:
 
 ```protobuf
 message QuoteResponse {
-  optional Order order = 1;
+  optional H128 ulid = 1;
+  optional H160 makerAddress = 2;
+  Order order = 3;
 }
 ```

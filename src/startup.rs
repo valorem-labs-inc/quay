@@ -92,7 +92,7 @@ pub fn run(
         .layer(RequestIdLayer)
         .layer(TraceLayer::new_for_http().make_span_with(TowerMakeSpanWithConstantId))
         .layer(session_layer)
-        .add_service(RfqServer::new(RFQService::default()))
+        .add_service(RfqServer::new(RFQService::new()))
         .into_service()
         .map_response(|r| r.map(axum::body::boxed))
         .boxed_clone();
