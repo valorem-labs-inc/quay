@@ -1,6 +1,6 @@
 @startuml
 
-actor Trader
+actor Taker
 box Valorem #LightGreen
 participant Quay
 end box
@@ -10,31 +10,28 @@ participant SettlementEngine as SE
 end box
 
 == Initialisation ==
-MM --> Quay: Authenticate
-MM --> Quay: gRPC RFQ Stream
-Quay --> MM: gRPC RFQ Stream
+MM -> Quay: Authenticate
+MM -> Quay: gRPC: MM RFQ Stream
+Quay -> MM: gRPC: MM RFQ Stream
 
-== Case: Market Maker Offer, Trader doesn't execute ==
-autonumber
-Trader -> Quay: gRPC: <server>/rfq
-note right
-ValoremQuoteRequest
-end note
-Quay -> MM: gRPC: RFQ Stream
-note right
-ValoremQuoteRequest
-end note
-MM -> Quay: gRPC: RFQ Stream
-note right
-ValoremQuoteRequest: Some
-end note
-MM --> SE: On-chain: write
-Quay -> Trader: gRPC: Offer
-hnote over Trader #lightBlue
+== Case: Market Maker Offer, Taker doesn't execute ==
+Taker --> SE: newOptionType(...)
+SE --> Taker: optionId
+Taker -> Quay: gRPC: RFQ\nQuoteRequest{ulid=None}
+Quay -> Taker: gRPC: Taker RFQ Stream
+Quay -> MM: gRPC: MM RFQ Stream\nQuoteRequest{ulid=Some}
+MM -> SE: option(...)
+SE -> MM: optionInfo
+MM -> SE: write(...)
+SE -> MM: claimId
+MM -> Quay: gRPC: MM RFQ Stream\nQuoteResponse{\n\tulid=Some,\n\tOffer=Some\n}
+Quay -> Taker: gRPC: Taker RFQ Stream\nQuoteResponse{Offer=Some}
+Quay -[#red]X Taker: gRPC: Taker RFQ Stream\nClose
+hnote over Taker #lightBlue
 [Start of exercise window]
 end hnote
-hnote over Trader #lightBlue
+hnote over Taker #lightBlue
 [ End of exercise window ]
 end hnote
-MM --> SE: On-chain: redeem
+MM -> SE: redeem(...)
 @enduml
