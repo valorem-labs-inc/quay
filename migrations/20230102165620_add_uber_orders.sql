@@ -1,7 +1,10 @@
+DROP FUNCTION IF EXISTS order_considerations_amount(TEXT,order_start_end_amount_sum_selector,TEXT);
+DROP FUNCTION IF EXISTS order_offers_amount(TEXT,order_start_end_amount_sum_selector,TEXT);
 DROP FUNCTION IF EXISTS get_orders_lite(TEXT,TEXT,TEXT[],TEXT[],BOOLEAN,order_lite_ordering_value_selector,order_lite_ordering_order_selector,INT,INT);
 
 DROP TYPE IF EXISTS order_lite_ordering_value_selector;
 DROP TYPE IF EXISTS order_lite_ordering_order_selector;
+DROP TYPE IF EXISTS order_start_end_amount_sum_selector;
 
 CREATE TYPE order_lite_ordering_value_selector AS ENUM (
     'OFFERS_AMOUNT',
@@ -13,6 +16,31 @@ CREATE TYPE order_lite_ordering_value_selector AS ENUM (
     'HASH'
 );
 CREATE TYPE order_lite_ordering_order_selector AS ENUM ('ASC', 'DESC');
+CREATE TYPE order_start_end_amount_sum_selector AS ENUM ('START', 'END');
+
+CREATE OR REPLACE FUNCTION order_considerations_amount(order_hash TEXT, type order_start_end_amount_sum_selector, target_token TEXT)
+    RETURNS NUMERIC AS
+$$
+    SELECT
+        CASE WHEN type = 'START'::order_start_end_amount_sum_selector
+            THEN SUM(C.start_amount)
+            ELSE SUM(C.end_amount)
+        END
+    FROM considerations C
+    WHERE ((C."order" = order_hash) OR order_hash = '') AND (C."token" = target_token)
+$$ LANGUAGE sql STABLE;
+
+CREATE OR REPLACE FUNCTION order_offers_amount(order_hash TEXT, type order_start_end_amount_sum_selector, target_token TEXT)
+    RETURNS NUMERIC AS
+$$
+    SELECT
+        CASE WHEN type = 'START'::order_start_end_amount_sum_selector
+            THEN SUM(OF.start_amount)
+            ELSE SUM(OF.end_amount)
+        END
+    FROM offers OF
+    WHERE ((OF."order" = order_hash) OR order_hash = '') AND (OF."token" = target_token)
+$$ LANGUAGE sql STABLE;
 
 CREATE OR REPLACE FUNCTION get_orders_lite(
     asset_contract_address TEXT,
