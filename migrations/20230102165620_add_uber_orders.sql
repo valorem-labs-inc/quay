@@ -5,6 +5,8 @@ DROP FUNCTION IF EXISTS get_orders_lite(TEXT,TEXT,TEXT[],TEXT[],BOOLEAN,order_li
 DROP TYPE IF EXISTS order_lite_ordering_value_selector;
 DROP TYPE IF EXISTS order_lite_ordering_order_selector;
 DROP TYPE IF EXISTS order_start_end_amount_sum_selector;
+DROP TYPE IF EXISTS order_lite_item;
+DROP TYPE IF EXISTS order_lite;
 
 CREATE TYPE order_lite_ordering_value_selector AS ENUM (
     'OFFERS_AMOUNT',
@@ -41,6 +43,35 @@ $$
     FROM offers OF
     WHERE ((OF."order" = order_hash) OR order_hash = '') AND (OF."token" = target_token)
 $$ LANGUAGE sql STABLE;
+
+CREATE TYPE order_lite_item AS
+(
+    "position!" INT,
+    "item_type!" INT,
+    "token!" TEXT,
+    "identifier_or_criteria!" TEXT,
+    "start_amount!" NUMERIC,
+    "end_amount!" NUMERIC
+);
+CREATE TYPE order_lite AS
+(
+    "signature!" TEXT,
+    "hash!" TEXT,
+    "start_time!" BIGINT,
+    "end_time!" BIGINT,
+    "order_type!" INT,
+    "offerer!" TEXT,
+    "listing_time!" BIGINT,
+    "considerations_total" NUMERIC,
+    "offers_total" NUMERIC,
+
+    "offers!: Vec<DBOrderItemSimple>" order_lite_item[],
+    "considerations!: Vec<DBOrderItemSimple>" order_lite_item[],
+
+    "cancelled!" BOOLEAN,
+    "finalized!" BOOLEAN,
+    "marked_invalid!" BOOLEAN
+);
 
 CREATE OR REPLACE FUNCTION get_orders_lite(
     asset_contract_address TEXT,
