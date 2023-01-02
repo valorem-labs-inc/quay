@@ -1,5 +1,19 @@
 DROP FUNCTION IF EXISTS get_orders_lite(TEXT,TEXT,TEXT[],TEXT[],BOOLEAN,order_lite_ordering_value_selector,order_lite_ordering_order_selector,INT,INT);
 
+DROP TYPE IF EXISTS order_lite_ordering_value_selector;
+DROP TYPE IF EXISTS order_lite_ordering_order_selector;
+
+CREATE TYPE order_lite_ordering_value_selector AS ENUM (
+    'OFFERS_AMOUNT',
+    'CONSIDERATIONS_AMOUNT',
+    'START_TIME',
+    'END_TIME',
+    'LISTING_TIME',
+    'OFFERER',
+    'HASH'
+);
+CREATE TYPE order_lite_ordering_order_selector AS ENUM ('ASC', 'DESC');
+
 CREATE OR REPLACE FUNCTION get_orders_lite(
     asset_contract_address TEXT,
     currency_token_address TEXT,
