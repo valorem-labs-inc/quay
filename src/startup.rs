@@ -103,11 +103,7 @@ pub fn run(
         .boxed_clone();
 
     let http_grpc = Steer::new(vec![http, grpc], |req: &Request<Body>, _svcs: &[_]| {
-        if req.headers().get(CONTENT_TYPE).map(|v| v.as_bytes()) != Some(b"application/grpc") {
-            0
-        } else {
-            1
-        }
+        usize::from(req.headers().get(CONTENT_TYPE).map(|v| v.as_bytes()) == Some(b"application/grpc"))
     });
 
     let handle = Handle::new();
@@ -147,7 +143,7 @@ impl Application {
             configuration.application.host, configuration.application.port
         );
 
-        let listener = TcpListener::bind(&address)?;
+        let listener = TcpListener::bind(address)?;
         let port = listener.local_addr().unwrap().port();
 
         let store = RedisSessionStore::new(redis_multiplexed.clone(), Some("/sessions".into()));
