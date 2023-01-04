@@ -103,7 +103,9 @@ pub fn run(
         .boxed_clone();
 
     let http_grpc = Steer::new(vec![http, grpc], |req: &Request<Body>, _svcs: &[_]| {
-        usize::from(req.headers().get(CONTENT_TYPE).map(|v| v.as_bytes()) == Some(b"application/grpc"))
+        usize::from(
+            req.headers().get(CONTENT_TYPE).map(|v| v.as_bytes()) == Some(b"application/grpc"),
+        )
     });
 
     let handle = Handle::new();
