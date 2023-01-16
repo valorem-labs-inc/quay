@@ -1,3 +1,6 @@
+#![warn(missing_docs, unreachable_pub)]
+#![deny(unused_must_use)]
+
 use std::{
     collections::hash_map::DefaultHasher,
     hash::{Hash, Hasher},
@@ -24,14 +27,21 @@ use tracing::info;
 
 use crate::configuration::GossipNodeSettings;
 
+/// The seaport gossip network protocol ID & version.
 pub const PROTOCOL_ID: &str = "seaport/0.0.1";
 
+/// The custom seaport gossip behavior.
 #[derive(NetworkBehaviour)]
 pub struct SeaportGossipBehaviour {
+    /// Used for distributing orders among peers and for
+    /// subscribing to information about collections, which are topics in the network.
     pub gossipsub: Gossipsub,
+    /// Used for peer discovery and updates beyond the user-provided bootstrap list.
     pub identify: identify::Behaviour,
+    /// Used for adding ping/pong functionality to the node.
     pub ping: ping::Behaviour,
-    pub mdns: mdns::tokio::Behaviour,
+    /// Used for automatic peer discovery in the local network.
+    pub mdns: mdns::tokio::Behaviour
 }
 
 impl SeaportGossipBehaviour {
@@ -50,12 +60,17 @@ impl SeaportGossipBehaviour {
     }
 }
 
+/// A Quay Gossip node, which can join the Seaport Gossip network
+/// for interacting with the P2P seaport market.
 pub struct QuayGossipNode {
+    /// The state of the network observed by the local node.
     pub swarm: Swarm<SeaportGossipBehaviour>,
+    /// The node's peer ID.
     pub local_peer_id: PeerId,
 }
 
 impl QuayGossipNode {
+    /// Creates a new node instance from a Keypair.
     pub fn new(keypair: Keypair) -> Result<QuayGossipNode> {
         let peer_id = PeerId::from(&keypair.public());
 
@@ -109,6 +124,7 @@ impl QuayGossipNode {
         })
     }
 
+    /// Starts the node.
     pub async fn run(mut self, config: GossipNodeSettings) -> Result<()> {
         info!("Starting Quay Gossip Client");
 
