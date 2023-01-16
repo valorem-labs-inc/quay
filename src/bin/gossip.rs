@@ -16,9 +16,9 @@ async fn main() -> Result<()> {
 
     let keypair = identity::Keypair::generate_ed25519();
 
-    let node = QuayGossipNode::new(keypair)?;
+    let node = QuayGossipNode::new(keypair, config.gossip)?;
 
-    if let Err(e) = node.run(config.gossip).await {
+    if let Err(e) = node.run().await {
         error!("Unhandled node error. Exiting");
         panic!("{}", e);
     }

@@ -41,7 +41,7 @@ pub struct SeaportGossipBehaviour {
     /// Used for adding ping/pong functionality to the node.
     pub ping: ping::Behaviour,
     /// Used for automatic peer discovery in the local network.
-    pub mdns: mdns::tokio::Behaviour
+    pub mdns: mdns::tokio::Behaviour,
 }
 
 impl SeaportGossipBehaviour {
@@ -67,11 +67,13 @@ pub struct QuayGossipNode {
     pub swarm: Swarm<SeaportGossipBehaviour>,
     /// The node's peer ID.
     pub local_peer_id: PeerId,
+    /// The node settings.
+    pub config: GossipNodeSettings,
 }
 
 impl QuayGossipNode {
     /// Creates a new node instance from a Keypair.
-    pub fn new(keypair: Keypair) -> Result<QuayGossipNode> {
+    pub fn new(keypair: Keypair, config: GossipNodeSettings) -> Result<QuayGossipNode> {
         let peer_id = PeerId::from(&keypair.public());
 
         let transport = tcp::tokio::Transport::new(tcp::Config::new().nodelay(true))
@@ -121,15 +123,17 @@ impl QuayGossipNode {
         Ok(QuayGossipNode {
             swarm,
             local_peer_id: peer_id,
+            config,
         })
     }
 
     /// Starts the node.
-    pub async fn run(mut self, config: GossipNodeSettings) -> Result<()> {
+    pub async fn run(mut self) -> Result<()> {
         info!("Starting Quay Gossip Client");
 
-        self.swarm
-            .listen_on(format!("/ip4/{}/tcp/{}", config.host_name, config.port).parse()?)?;
+        self.swarm.listen_on(
+            format!("/ip4/{}/tcp/{}", self.config.host_name, self.config.port).parse()?,
+        )?;
 
         self.swarm
             .behaviour_mut()
@@ -156,12 +160,14 @@ impl QuayGossipNode {
                                     mdns::Event::Discovered(list) => {
                                         for (peer, _) in list {
                                             self.swarm.behaviour_mut().gossipsub.add_explicit_peer(&peer);
+                                            info!("Added peer {}", peer);
                                         }
                                     }
                                     mdns::Event::Expired(list) => {
                                         for (peer, _) in list {
                                             if !self.swarm.behaviour().mdns.has_node(&peer) {
                                                 self.swarm.behaviour_mut().gossipsub.remove_explicit_peer(&peer);
+                                                info!("Removed peer {}", peer);
                                             }
                                         }
                                     }
