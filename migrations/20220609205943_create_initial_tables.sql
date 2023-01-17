@@ -50,7 +50,7 @@ CREATE TABLE offers
     start_amount NUMERIC NOT NULL,
     end_amount NUMERIC NOT NULL,
 
-    PRIMARY KEY("order", position)
+    PRIMARY KEY("order", position),
 
     CONSTRAINT offers_start_amount_within_range CHECK (start_amount >= 0 AND start_amount < 2^256),
     CONSTRAINT offers_start_amount_no_decimals CHECK (SCALE(start_amount) = 0),
@@ -72,7 +72,7 @@ CREATE TABLE considerations
 
     recipient citext REFERENCES addresses(address) NOT NULL,
 
-    PRIMARY KEY("order", position)
+    PRIMARY KEY("order", position),
 
     CONSTRAINT considerations_start_amount_within_range CHECK (start_amount >= 0 AND start_amount < 2^256),
     CONSTRAINT considerations_start_amount_no_decimals CHECK (SCALE(start_amount) = 0),

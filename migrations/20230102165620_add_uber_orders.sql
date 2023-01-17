@@ -13,7 +13,6 @@ CREATE TYPE order_lite_ordering_value_selector AS ENUM (
     'CONSIDERATIONS_AMOUNT',
     'START_TIME',
     'END_TIME',
-    'LISTING_TIME',
     'OFFERER',
     'HASH'
 );
@@ -61,7 +60,6 @@ CREATE TYPE order_lite AS
     "end_time!" BIGINT,
     "order_type!" INT,
     "offerer!" TEXT,
-    "listing_time!" BIGINT,
     "considerations_total" NUMERIC,
     "offers_total" NUMERIC,
 
@@ -125,7 +123,6 @@ $$
             SELECT *
             FROM orders O
                 INNER JOIN GUIOCO ON O.hash = ANY(GUIOCO.container_orders)
-            ORDER BY listing_time
         ),
         LLO AS (
             SELECT
@@ -138,18 +135,17 @@ $$
                 O."order_type",
                 O."total_original_consideration_items",
                 O."salt",
+                O."counter",
                 O."conduit_key",
                 O."signature",
                 O."cancelled",
                 O."finalized",
-                O."marked_invalid",
-                O."listing_time",
-                O."counter"
+                O."marked_invalid"
             FROM GUIOCO G
                 INNER JOIN (
                     SELECT DISTINCT ON (identifier_or_criteria) *
                         FROM LTOO
-                        ORDER BY identifier_or_criteria, listing_time DESC
+                        ORDER BY identifier_or_criteria DESC
                 ) O ON O.hash = ANY(G.container_orders)
         ),
         SO AS (
@@ -170,7 +166,6 @@ $$
                 O.end_time AS "end_time!",
                 O.order_type AS "order_type!",
                 O.offerer AS "offerer!",
-                O.listing_time AS "listing_time!",
 
                 -- We sum all of the values in considerations and offers
                 -- This is a nice and simple way to get the price of a listing for example
@@ -239,17 +234,16 @@ $$
                     AND     O.start_time <= extract(epoch from now())
                     AND     O.end_time >= extract(epoch from now())
                 ))
-            GROUP BY O.signature, O.hash, O.start_time, O.end_time, O.order_type, O.offerer, O.listing_time, O.cancelled, O.finalized, O.marked_invalid
+            GROUP BY O.signature, O.hash, O.start_time, O.end_time, O.order_type, O.offerer, O.cancelled, O.finalized, O.marked_invalid
         )
     SELECT *
     FROM OSQ
     ORDER BY
         ((CASE
-            WHEN ordering = 'OFFERS_AMOUNT'::order_lite_ordering_value_selector THEN 8          -- "offers_total"
-            WHEN ordering = 'CONSIDERATIONS_AMOUNT'::order_lite_ordering_value_selector THEN 7  -- "considerations_total"
+            WHEN ordering = 'OFFERS_AMOUNT'::order_lite_ordering_value_selector THEN 7          -- "offers_total"
+            WHEN ordering = 'CONSIDERATIONS_AMOUNT'::order_lite_ordering_value_selector THEN 6  -- "considerations_total"
             WHEN ordering = 'START_TIME'::order_lite_ordering_value_selector THEN 2             -- "start_time!"
             WHEN ordering = 'END_TIME'::order_lite_ordering_value_selector THEN 3               -- "end_time!"
-            WHEN ordering = 'LISTING_TIME'::order_lite_ordering_value_selector THEN 6           -- "listing_time!"
             WHEN ordering = 'OFFERER'::order_lite_ordering_value_selector THEN 5                -- "offerer!"
             WHEN ordering = 'HASH'::order_lite_ordering_value_selector THEN 1                   -- "hash!"
             ELSE 1                                                                              -- "hash!"
