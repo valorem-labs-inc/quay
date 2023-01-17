@@ -53,9 +53,9 @@ tracing-subscriber = { version = "0.3.16", features = ["registry", "env-filter"]
 ulid = "1.0.0"
 uuid = { version = "1.2.2", features = ["v4", "serde"] }
 
-# TODO(sqlx breaks connect_timeout on minor version upgrade, violating semantic versioning)
 [dependencies.sqlx]
-version = "0.5.7"
+git = "https://github.com/KodexLabs/sqlx.git"
+branch = "main"
 default-features = false
 features = [
     "runtime-tokio-rustls",
@@ -64,7 +64,8 @@ features = [
     "uuid",
     "chrono",
     "migrate",
-    "offline"
+    "offline",
+    "u256"
 ]
 
 [dev-dependencies]
