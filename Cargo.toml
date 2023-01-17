@@ -8,6 +8,7 @@ edition = "2021"
 path = "src/lib.rs"
 
 [dependencies]
+utoipa = "2"
 anyhow = "1.0.66"
 arrayref = "0.3.6"
 async-redis-session = { git = "https://github.com/0xAlcibiades/async-redis-session.git", branch = "tokio" }

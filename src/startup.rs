@@ -24,6 +24,7 @@ use tonic::transport::Server;
 use tower::{make::Shared, steer::Steer, BoxError, ServiceExt};
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
+use utoipa::OpenApi;
 
 use crate::middleware::{track_prometheus_metrics, RequestIdLayer};
 use crate::redis_pool::RedisConnectionManager;
@@ -51,6 +52,22 @@ pub fn run(
     session_layer: SessionLayer<RedisSessionStore>,
     rpc: Provider<Http>,
 ) -> BoxFuture<'static, Result<(), std::io::Error>> {
+    #[derive(OpenApi)]
+    #[openapi(
+        paths(
+            health_check,
+            
+        ),
+        components(
+            schemas()
+        ),
+        tags(
+            (name = "quay", description = "Quay is an open source, high performance backend for the Seaport smart 
+            contracts")
+        )
+    )]
+    struct ApiDoc;
+
     let provider = Arc::new(rpc.clone());
 
     let seaport = Seaport::new(

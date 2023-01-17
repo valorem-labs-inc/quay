@@ -3,7 +3,9 @@ use serde::{Deserialize, Deserializer, Serialize};
 
 use crate::bindings::seaport::{ConsiderationItem, OfferItem, Order, OrderComponents};
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+use utoipa::{IntoParams, ToSchema};
+
+#[derive(Clone, Debug, Deserialize, Serialize, IntoParams)]
 pub struct OrderQuery {
     #[serde(default)]
     pub asset_contract_address: H160,
@@ -14,7 +16,7 @@ pub struct OrderQuery {
     pub limit: Option<i64>,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 pub struct RetrieveResponse {
     pub orders: Vec<ComplexOrder>,
 }
@@ -112,7 +114,7 @@ pub struct OrderInputParameters {
     pub nonce: u64,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct OrderInput {
     pub parameters: OrderInputParameters,

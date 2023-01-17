@@ -10,6 +10,17 @@ use sqlx::{query_as, PgPool};
 
 use crate::structs::{DBConsideration, DBOffer, DBOrder, OrderQuery, RetrieveResponse};
 
+#[utoipa::path(
+    get,
+    path="/listings",
+    params(
+        OrderQuery
+    ),
+    responses(
+        (status = 200, description = "Successfully retrieved listings", body=[RetrieveResponse]),
+        (status = 500, description = "Failed to retieve listings")
+    )
+)]
 pub async fn retrieve_listings(
     State(pool): State<PgPool>,
     query: Query<OrderQuery>,
