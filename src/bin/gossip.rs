@@ -2,7 +2,7 @@ use anyhow::Result;
 use libp2p::identity;
 use quay::{
     configuration::get_configuration,
-    gossip::QuayGossipNode,
+    gossip::node::QuayGossipNode,
     telemetry::{get_subscriber, init_subscriber},
 };
 use tracing::error;
