@@ -10,6 +10,17 @@ use sqlx::{query_as, PgPool};
 
 use crate::structs::{DBConsideration, DBOffer, DBOrder, OrderQuery, RetrieveResponse};
 
+#[utoipa::path(
+    get,
+    path="/offers",
+    params(
+        OrderQuery
+    ),
+    responses(
+        (status = 200, description = "Successfully retrieved offers", body = [RetrieveResponse]),
+        (status = 500, description = "Failed to retrieve offers")
+    ),
+)]
 pub async fn retrieve_offers(
     State(pool): State<PgPool>,
     query: Query<OrderQuery>,

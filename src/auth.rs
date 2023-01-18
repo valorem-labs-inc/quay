@@ -7,6 +7,7 @@ use ethers::abi::ethereum_types::Signature;
 use http::StatusCode;
 use serde::{Deserialize, Serialize};
 use siwe::Message;
+use utoipa::IntoParams;
 
 pub const NONCE_KEY: &str = "nonce";
 pub const EXPIRATION_TIME_KEY: &str = "expirationTime";
@@ -18,7 +19,7 @@ pub fn unix_timestamp() -> Result<u64, anyhow::Error> {
 
 // EIP-4361 based session
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, IntoParams)]
 pub struct SignedMessage {
     pub signature: Signature,
     pub message: Message,

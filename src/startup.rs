@@ -31,6 +31,7 @@ use crate::redis_pool::RedisConnectionManager;
 use crate::rfq::rfq_server::RfqServer;
 use crate::routes::*;
 use crate::services::*;
+use crate::structs::RetrieveResponse;
 use crate::session::session_server::SessionServer;
 use crate::{bindings::Seaport, state::AppState};
 use crate::{
@@ -56,10 +57,17 @@ pub fn run(
     #[openapi(
         paths(
             health_check,
-            
+            metrics_prometheus,
+            create_listing,
+            retrieve_listings,
+            create_offer,
+            retrieve_offers,
+            get_nonce,
+            verify,
+            authenticate
         ),
         components(
-            schemas()
+            schemas(RetrieveResponse)
         ),
         tags(
             (name = "quay", description = "Quay is an open source, high performance backend for the Seaport smart 
@@ -95,6 +103,7 @@ pub fn run(
         .route("/nonce", get(get_nonce))
         .route("/verify", post(verify))
         .route("/authenticate", get(authenticate))
+        .route("/spec/v3", get(|| async { ApiDoc::openapi().to_json().unwrap() }))
         // Layers/middleware
         .layer(TraceLayer::new_for_http().make_span_with(TowerMakeSpanWithConstantId))
         .layer(RequestIdLayer)
