@@ -3,7 +3,7 @@ use http::StatusCode;
 
 #[utoipa::path(
     get,
-    path = "health_check",
+    path = "/health_check",
     responses(
         (status = 200, description = "Check if API is online")
     )
