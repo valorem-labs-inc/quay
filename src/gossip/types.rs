@@ -1,4 +1,4 @@
-use crate::structs::DBOffer;
+use crate::structs::{DBConsideration, DBOffer};
 use ssz_rs::prelude::*;
 use thiserror::Error;
 
@@ -186,17 +186,38 @@ pub enum OfferConversionError {
 
 impl TryFrom<DBOffer> for OfferItem {
     type Error = OfferConversionError;
+
     fn try_from(value: DBOffer) -> Result<Self, Self::Error> {
+        let token: H160 = hex::decode(value.token)?.try_into().unwrap(); // result is infallible here
+
         Ok(OfferItem {
             item_type: value.item_type as u8,
-            token: hex::decode(value.token)?
-                .try_into()
-                .expect("Invalid length"),
+            token,
             identifier_or_criteria: U256::try_from_bytes_le(&hex::decode(
                 value.identifier_or_criteria,
             )?)?,
             start_amount: U256::try_from_bytes_le(&hex::decode(value.start_amount)?)?,
             end_amount: U256::try_from_bytes_le(&hex::decode(value.end_amount)?)?,
         })
+    }
+}
+
+impl TryFrom<DBConsideration> for ConsiderationItem {
+    type Error = OfferConversionError;
+
+    fn try_from(value: DBConsideration) -> Result<Self, Self::Error> {
+        let offer: OfferItem = DBOffer {
+            position: value.position,
+            item_type: value.item_type,
+            token: value.token,
+            identifier_or_criteria: value.identifier_or_criteria,
+            start_amount: value.start_amount,
+            end_amount: value.end_amount,
+        }
+        .try_into()?;
+
+        let recipient: H160 = hex::decode(value.recipient)?.try_into()?;
+
+        Ok(ConsiderationItem { offer, recipient })
     }
 }
