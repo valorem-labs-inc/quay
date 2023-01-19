@@ -18,9 +18,7 @@ use crate::{
 #[utoipa::path(
     post,
     path = "/offers",
-    params(
-        OrderInput
-    ),
+    request_body = OrderInput,
     responses(
         (status = 200, description = "Create offer successfully"),
         (status = 500, description = "Failed to create offer")

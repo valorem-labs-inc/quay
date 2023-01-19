@@ -18,9 +18,7 @@ use crate::{database::save_order, structs::OrderInput};
 #[utoipa::path(
     post,
     path = "/listings",
-    params(
-        OrderInput
-    ),
+    request_body = OrderInput,
     responses(
         (status = 200, description = "Create listing successfully"),
         (status = 500, description = "Failed to create listing")

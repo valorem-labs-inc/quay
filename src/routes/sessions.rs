@@ -55,9 +55,7 @@ pub async fn get_nonce(mut session: WritableSession) -> impl IntoResponse {
 #[utoipa::path(
     post,
     path = "/verify",
-    params(
-        SignedMessage
-    ),
+    request_body = SignedMessage,
     responses(
         (status = 200, description = "Successfully verified"),
         (status = 422, description = "Failed to get nonce or failed to validate signature"),
