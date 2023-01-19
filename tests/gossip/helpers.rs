@@ -1,6 +1,6 @@
 use libp2p::identity::Keypair;
 use quay::configuration::GossipNodeSettings;
-use quay::gossip::QuayGossipNode;
+use quay::gossip::node::QuayGossipNode;
 
 pub struct TestNode {
     pub keypair: Keypair,

@@ -5,3 +5,5 @@
 pub mod node;
 /// Seaport protocol implementation.
 pub mod protocol;
+/// Types concerning the seaport gossip protocol.
+pub mod types;
