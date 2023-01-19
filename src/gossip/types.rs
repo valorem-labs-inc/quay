@@ -33,9 +33,9 @@ pub struct OfferItem {
 pub struct ConsiderationItem {
     /// The offered item.
     #[serde(flatten)]
-    offer: OfferItem,
+    pub offer: OfferItem,
     /// The recipient for the item.
-    recipient: H160,
+    pub recipient: H160,
 }
 
 /// A seaport order in a Seaport Gossip Network compatible format, encoded using SSZ.
@@ -44,25 +44,25 @@ pub struct ConsiderationItem {
 )]
 #[serde(rename_all = "camelCase")]
 pub struct Order {
-    offer: List<OfferItem, 100>,
-    consideration: List<ConsiderationItem, 100>,
-    offerer: H160,
-    signature: Signature,
-    order_type: u8,
-    start_time: u32,
-    end_time: u32,
-    counter: U256,
-    salt: U256,
-    conduit_key: H256,
-    zone: H160,
-    zone_hash: H256,
-    chain_id: U256,
+    pub offer: List<OfferItem, 100>,
+    pub consideration: List<ConsiderationItem, 100>,
+    pub offerer: H160,
+    pub signature: Signature,
+    pub order_type: u8,
+    pub start_time: u32,
+    pub end_time: u32,
+    pub counter: U256,
+    pub salt: U256,
+    pub conduit_key: H256,
+    pub zone: H160,
+    pub zone_hash: H256,
+    pub chain_id: U256,
     // Basic order types
-    additional_recipients: List<H160, 50>,
+    pub additional_recipients: List<H160, 50>,
     // Advanced order types
-    numerator: U256,
-    denominator: U256,
-    extra_data: H256,
+    pub numerator: U256,
+    pub denominator: U256,
+    pub extra_data: H256,
 }
 
 /// Gossipsub event indicating that the local node is sending offers.
@@ -216,7 +216,7 @@ impl TryFrom<DBConsideration> for ConsiderationItem {
         }
         .try_into()?;
 
-        let recipient: H160 = hex::decode(value.recipient)?.try_into()?;
+        let recipient: H160 = hex::decode(value.recipient)?.try_into().unwrap(); // result infallible here
 
         Ok(ConsiderationItem { offer, recipient })
     }
