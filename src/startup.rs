@@ -31,8 +31,8 @@ use crate::redis_pool::RedisConnectionManager;
 use crate::rfq::rfq_server::RfqServer;
 use crate::routes::*;
 use crate::services::*;
-use crate::structs::RetrieveResponse;
 use crate::session::session_server::SessionServer;
+use crate::structs::RetrieveResponse;
 use crate::{bindings::Seaport, state::AppState};
 use crate::{
     configuration::{DatabaseSettings, Settings},
@@ -103,7 +103,10 @@ pub fn run(
         .route("/nonce", get(get_nonce))
         .route("/verify", post(verify))
         .route("/authenticate", get(authenticate))
-        .route("/spec/v3", get(|| async { ApiDoc::openapi().to_json().unwrap() }))
+        .route(
+            "/spec/v3",
+            get(|| async { ApiDoc::openapi().to_json().unwrap() }),
+        )
         // Layers/middleware
         .layer(TraceLayer::new_for_http().make_span_with(TowerMakeSpanWithConstantId))
         .layer(RequestIdLayer)
@@ -170,7 +173,7 @@ impl Application {
             configuration.application.host, configuration.application.port
         );
 
-        let listener = TcpListener::bind(&address)?;
+        let listener = TcpListener::bind(address)?;
         let port = listener.local_addr().unwrap().port();
 
         let store = RedisSessionStore::new(redis_multiplexed.clone(), Some("/sessions".into()));
