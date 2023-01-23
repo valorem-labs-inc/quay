@@ -15,6 +15,9 @@ use crate::{
 };
 use crate::{database::save_order, structs::OrderInput};
 
+/// Create listing
+///
+/// Create a new listing
 #[utoipa::path(
     post,
     path = "/listings",

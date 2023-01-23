@@ -10,6 +10,9 @@ use sqlx::{query_as, PgPool};
 
 use crate::structs::{DBConsideration, DBOffer, DBOrder, OrderQuery, RetrieveResponse};
 
+/// Retrieve offers
+///
+/// Retrieve offers from database with query
 #[utoipa::path(
     get,
     path="/offers",

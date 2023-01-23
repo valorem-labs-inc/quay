@@ -15,6 +15,9 @@ use crate::{
     database::{save_address, save_consideration, save_offer, save_order},
 };
 
+/// Create offer
+///
+/// Create offer on listing
 #[utoipa::path(
     post,
     path = "/offers",

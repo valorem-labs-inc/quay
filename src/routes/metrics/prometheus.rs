@@ -4,11 +4,14 @@ use prometheus::Encoder;
 
 use crate::telemetry::get_metrics_registry;
 
+/// Metrics prometheus
+/// 
+/// Get prometheus metrics
 #[utoipa::path(
     get,
     path = "/metrics/prometheus",
     responses(
-        (status = 200, description = "Get promethious matrics"),
+        (status = 200, description = "Get prometheus matrics"),
         (status = 500, description = "Failed to encode matrics"),
     )
 )]

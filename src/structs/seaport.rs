@@ -1,9 +1,8 @@
 use ethers::types::{H160, U256};
 use serde::{Deserialize, Deserializer, Serialize};
+use utoipa::{IntoParams, ToSchema};
 
 use crate::bindings::seaport::{ConsiderationItem, OfferItem, Order, OrderComponents};
-
-use utoipa::{IntoParams, ToSchema};
 
 #[derive(Clone, Debug, Deserialize, Serialize, IntoParams)]
 pub struct OrderQuery {

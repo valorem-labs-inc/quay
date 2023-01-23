@@ -52,6 +52,9 @@ pub async fn get_nonce(mut session: WritableSession) -> impl IntoResponse {
     (headers, nonce).into_response()
 }
 
+/// Verify
+///
+/// Verify
 #[utoipa::path(
     post,
     path = "/verify",
@@ -132,6 +135,9 @@ pub async fn verify(
     (StatusCode::OK).into_response()
 }
 
+/// Authenticate
+///
+/// Verify session
 #[utoipa::path(
     get,
     path = "/authenticate",
