@@ -1,3 +1,4 @@
+use ethers::types::H160;
 use secrecy::Secret;
 use serde_aux::field_attributes::deserialize_number_from_string;
 use sqlx::postgres::{PgConnectOptions, PgSslMode};
@@ -70,12 +71,21 @@ pub struct PaperclipSettings {
 }
 
 #[derive(serde::Deserialize, Clone)]
+pub struct GossipNodeSettings {
+    pub collection_addresses: Option<Vec<H160>>,
+    pub seaport_bootnodes: Option<Vec<String>>,
+    pub host_name: String,
+    pub port: u16,
+}
+
+#[derive(serde::Deserialize, Clone)]
 pub struct Settings {
     pub database: DatabaseSettings,
     pub application: ApplicationSettings,
     pub rpc: RPCSettings,
     pub redis_url: Secret<String>,
     pub indexer: IndexerSettings,
+    pub gossip: GossipNodeSettings,
 }
 
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {

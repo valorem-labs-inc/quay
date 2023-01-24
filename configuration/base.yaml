@@ -13,3 +13,6 @@ rpc:
   chain_id: 1
 indexer:
   seaport_deploy_block: 14946473
+gossip:
+  port: 8001
+  host_name: "0.0.0.0"

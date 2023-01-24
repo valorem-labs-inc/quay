@@ -2,6 +2,8 @@ pub mod auth;
 pub mod bindings;
 pub mod configuration;
 pub mod database;
+/// Seaport Gossip module.
+pub mod gossip;
 pub mod indexer;
 pub mod middleware;
 pub mod redis_pool;
