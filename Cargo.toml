@@ -56,6 +56,7 @@ uuid = { version = "1.2.2", features = ["v4", "serde"] }
 ssz-rs = { git = "https://github.com/ralexstokes/ssz-rs.git", branch = "main" }
 hex = "0.4.3"
 thiserror = "1.0.38"
+clap = { version = "4.1.3", features = ["derive"] }
 
 # TODO(sqlx breaks connect_timeout on minor version upgrade, violating semantic versioning)
 [dependencies.sqlx]
