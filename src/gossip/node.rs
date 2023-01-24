@@ -5,6 +5,7 @@ use std::{
 };
 
 use anyhow::Result;
+use ethers::types::H160;
 use futures::StreamExt;
 use libp2p::{
     core::upgrade,
@@ -12,7 +13,7 @@ use libp2p::{
         self,
         error::{PublishError, SubscriptionError},
         Gossipsub, GossipsubEvent, GossipsubMessage, IdentTopic as Topic, MessageAuthenticity,
-        MessageId, ValidationMode,
+        MessageId, TopicHash, ValidationMode,
     },
     identify,
     identity::Keypair,
@@ -20,9 +21,11 @@ use libp2p::{
     swarm::{NetworkBehaviour, SwarmEvent},
     tcp, PeerId, Swarm, Transport,
 };
-use tracing::info;
+use tracing::{info, warn};
 
 use crate::configuration::GossipNodeSettings;
+
+use super::types::SeaportGossipsubEvent;
 
 /// The seaport gossip network protocol ID & version.
 pub const PROTOCOL_ID: &str = "seaport/0.1.0";
@@ -131,7 +134,7 @@ impl QuayGossipNode {
     }
 
     /// Starts the node.
-    pub async fn run(mut self) -> Result<()> {
+    pub async fn run(&mut self) -> Result<()> {
         info!("Starting Quay Gossip Client");
 
         self.swarm.listen_on(
@@ -141,7 +144,21 @@ impl QuayGossipNode {
         self.swarm
             .behaviour_mut()
             .subscribe(&Topic::new("gossipsub:message"))?;
+
+        let collection_addresses = self.config.collection_addresses.clone().unwrap_or(vec![]);
+
         info!("Local peer ID: {}", self.local_peer_id);
+
+        for address in collection_addresses.iter() {
+            match self
+                .swarm
+                .behaviour_mut()
+                .subscribe(&Topic::new(hex::encode(address)))
+            {
+                Ok(_) => info!("Successfully subscribed to collection/topic {}", address),
+                Err(e) => warn!("Subscription/topic err: {}", e.to_string()),
+            }
+        }
 
         loop {
             tokio::select! {
@@ -152,11 +169,7 @@ impl QuayGossipNode {
                                 info!("Listening on {address:?}");
                             }
                             SwarmEvent::Behaviour(SeaportGossipBehaviourEvent::Gossipsub(GossipsubEvent::Message{ message, .. })) => {
-                                info!(
-                                        "Received: '{:?}' from {:?}",
-                                        String::from_utf8_lossy(&message.data),
-                                        message.source
-                                    );
+                                self.on_gossipsub_message(message);
                             }
                             SwarmEvent::Behaviour(SeaportGossipBehaviourEvent::Mdns(event)) => {
                                 match event {
@@ -183,5 +196,45 @@ impl QuayGossipNode {
                 }
             }
         }
+    }
+
+    fn on_gossipsub_message(&self, message: GossipsubMessage) {
+        info!(
+            "Received: '{:?}' from {:?}",
+            String::from_utf8_lossy(&message.data),
+            message.source
+        );
+    }
+
+    /// Publishes a seaport gossip event to the P2P network.
+    pub fn publish_gossipsup_message(
+        &mut self,
+        event: SeaportGossipsubEvent,
+    ) -> Result<(), anyhow::Error> {
+        let mut addresses: Vec<H160> = event
+            .order
+            .offer
+            .iter()
+            .map(|offer| H160::from_slice(offer.token.as_slice()))
+            .collect();
+        let mut consideration_addresses: Vec<H160> = event
+            .order
+            .consideration
+            .iter()
+            .map(|consideration| H160::from_slice(consideration.offer.token.as_slice()))
+            .collect();
+        addresses.append(&mut consideration_addresses);
+        addresses.sort();
+        addresses.dedup();
+        let serialized_event = ssz_rs::serialize(&event)?;
+        // TODO: Look into parallelizing, probably with rayon
+        for address in addresses {
+            self.swarm.behaviour_mut().gossipsub.publish(
+                TopicHash::from_raw(address.clone().to_string()),
+                serialized_event.clone(),
+            )?;
+        }
+
+        Ok(())
     }
 }
