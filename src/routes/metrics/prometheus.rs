@@ -5,7 +5,7 @@ use prometheus::Encoder;
 use crate::telemetry::get_metrics_registry;
 
 /// Metrics prometheus
-/// 
+///
 /// Get prometheus metrics
 #[utoipa::path(
     get,
