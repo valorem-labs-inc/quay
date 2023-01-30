@@ -79,8 +79,7 @@ impl Session for SessionService {
             Ok(_) => (),
             Err(error) => {
                 return Err(Status::unauthenticated(format!(
-                    "Invalid signature {:?}.",
-                    error
+                    "Invalid signature {error:?}."
                 )))
             }
         }

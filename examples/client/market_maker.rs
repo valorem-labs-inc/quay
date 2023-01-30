@@ -31,7 +31,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = env::args().skip(1).collect();
 
     if args.len() != 2 {
-        eprintln!("Unexpected command line arguments. Received {:?}", args);
+        eprintln!("Unexpected command line arguments. Received {args:?}");
         eprintln!("Usage: example-client quay-server wallet_address");
         exit(1);
     }
@@ -170,7 +170,7 @@ async fn setup(quay_uri: Uri, private_key: String) -> (String, Address) {
     match response {
         Ok(_) => (),
         Err(error) => {
-            eprintln!("Unable to verify client. Reported error:\n{:?}", error);
+            eprintln!("Unable to verify client. Reported error:\n{error:?}");
             exit(2);
         }
     }
@@ -181,8 +181,7 @@ async fn setup(quay_uri: Uri, private_key: String) -> (String, Address) {
         Ok(_) => (),
         Err(error) => {
             eprintln!(
-                "Unable to check authentication with Quay. Reported error:\n{:?}",
-                error
+                "Unable to check authentication with Quay. Reported error:\n{error:?}"
             );
             exit(3);
         }
