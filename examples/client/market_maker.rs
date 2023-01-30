@@ -180,9 +180,7 @@ async fn setup(quay_uri: Uri, private_key: String) -> (String, Address) {
     match response {
         Ok(_) => (),
         Err(error) => {
-            eprintln!(
-                "Unable to check authentication with Quay. Reported error:\n{error:?}"
-            );
+            eprintln!("Unable to check authentication with Quay. Reported error:\n{error:?}");
             exit(3);
         }
     }
