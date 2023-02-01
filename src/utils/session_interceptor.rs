@@ -4,6 +4,9 @@ use tonic::{Request, Status};
 
 const COOKIE_HEADER_KEY: &str = "cookie";
 
+/// The Session Interceptor is a gRPC interceptor for the client to add session
+/// authentication details into the `request` header information such that the server can
+/// validate/confirm the client is using a valid session.
 #[derive(Default)]
 pub struct SessionInterceptor {
     pub session_cookie: String,

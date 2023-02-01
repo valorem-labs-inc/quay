@@ -20,7 +20,7 @@ bb8 = "0.8.0"
 chrono = "0.4"
 # TODO(Config breaks TryFrom between 0.11 -> 0.13, violating semantic versioning)
 config = { version = "0.11", default-features = false, features = ["yaml"] }
-ethers = "1.0.2"
+ethers = { version = "1.0.2", features = ["abigen", "ws", "rustls", "ipc"] }
 futures = "0.3.25"
 http = "0.2.8"
 hyper = "0.14.23"
