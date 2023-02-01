@@ -3,7 +3,7 @@
 The following diagram assumes that the Options token does not currently exist. However, if the Option does exist,
 then the Trader can forgo the request to `newOptionType` and instead simply just use the Option ID.
 
-The diagram highlights important fields within the messages being passed. The message structure with theses fields
+The diagram highlights important fields within the messages being passed. The message structure with these fields
 may not contain _all_ required fields
 
 ![mm_no_offer](./diagrams/mm_no_offer.png)
@@ -12,7 +12,7 @@ may not contain _all_ required fields
 The following diagram assumes that the Options token does not currently exist. However, if the Option does exist,
 then the Trader can forgo the request to `newOptionType` and instead simply just use the Option ID.
 
-The diagram highlights important fields within the messages being passed. The message structure with theses fields
+The diagram highlights important fields within the messages being passed. The message structure with these fields
 may not contain _all_ required fields
 
 ![mm_offer_trader_doesnt_execute](./diagrams/mm_offer_trader_doesnt_execute.png)
@@ -21,7 +21,7 @@ may not contain _all_ required fields
 The following diagram assumes that the Options token does not currently exist. However, if the Option does exist,
 then the Trader can forgo the request to `newOptionType` and instead simply just use the Option ID.
 
-The diagram highlights important fields within the messages being passed. The message structure with theses fields
+The diagram highlights important fields within the messages being passed. The message structure with these fields
 may not contain _all_ required fields
 
 ![mm_offer_trader_execute](./diagrams/mm_offer_trader_execute.png)

@@ -80,7 +80,7 @@ out.
 
 ##### How to run migration using `sqlx-cli`
 1. `sqlx migrate add '<MIGRATION_NAME>'`;
-2. Write all necesarry queries in `migrations/<MIGRATION_NAME>`;
+2. Write all necessary queries in `migrations/<MIGRATION_NAME>`;
 3. Apply for local db (if it's required for testing): `sqlx migrate run`;
 
 ### Smart contract interactions and data structures
