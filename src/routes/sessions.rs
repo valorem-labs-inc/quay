@@ -18,7 +18,7 @@ pub async fn get_nonce(mut session: WritableSession) -> impl IntoResponse {
             return (StatusCode::INTERNAL_SERVER_ERROR, "Failed to set nonce.").into_response()
         }
     }
-    // Make sure we don't inherit a dirty settion expiry
+    // Make sure we don't inherit a dirty session expiry
     let ts = match unix_timestamp() {
         Ok(ts) => ts,
         Err(_) => {

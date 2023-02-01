@@ -1,17 +1,67 @@
 use crate::auth::{
     unix_timestamp, SignedMessage, EXPIRATION_TIME_KEY, NONCE_KEY, USER_ADDRESS_KEY,
 };
-use crate::session::session_server::Session;
-use crate::session::{Empty, NonceText, VerifyText};
+use crate::session::{session_server::Session, Empty, NonceText, VerifyText};
+
 use axum_sessions::SessionHandle;
 use ethers::prelude::Address;
 use siwe::VerificationOpts;
-use tonic::{Request, Response, Status};
+use tokio::{sync::RwLockReadGuard, task};
+use tonic::{service::Interceptor, Request, Response, Status};
 
 const SEVEN_DAYS_IN_SECONDS: u64 = 604800u64;
 
+// Private authentication function for used by the service endpoint and the session interceptor.
+fn authenticate(
+    session: &RwLockReadGuard<axum_sessions::async_session::Session>,
+) -> Result<(), Status> {
+    // Confirm the nonce is valid.
+    match session.get::<String>(NONCE_KEY) {
+        Some(_) => (),
+        // Invalid nonce
+        None => return Err(Status::unauthenticated("Failed to get nonce")),
+    }
+
+    // Confirm the session is still valid.
+    let now = match unix_timestamp() {
+        Ok(now) => now,
+        Err(_) => return Err(Status::internal("Failed to get unix timestamp.")),
+    };
+
+    match session.get::<u64>(EXPIRATION_TIME_KEY) {
+        None => return Err(Status::unauthenticated("Failed to get session expiration")),
+        Some(ts) => {
+            if now > ts {
+                return Err(Status::unauthenticated("Session expired"));
+            }
+        }
+    }
+
+    // Authenticated request
+    Ok(())
+}
+
+/// The SessionAuthenticator is a gRPC interceptor for the server to check and validate session
+/// authentication details in the `request`.
+#[derive(Clone)]
+pub struct SessionAuthenticator;
+
+impl Interceptor for SessionAuthenticator {
+    fn call(&mut self, request: Request<()>) -> Result<Request<()>, Status> {
+        // Use an internal scope to ensure the borrow of the request is dropped (i.e.
+        // RwLockReadGuard is dropped at the end of the scope), in order to move it for the return
+        // value
+        {
+            let session_handle = request.extensions().get::<SessionHandle>().unwrap();
+            let session = task::block_in_place(|| session_handle.blocking_read());
+            authenticate(&session)
+        }
+        .map(|_| request)
+    }
+}
+
 #[derive(Debug, Default)]
-pub struct SessionService {}
+pub struct SessionService;
 
 #[tonic::async_trait]
 impl Session for SessionService {
@@ -108,27 +158,6 @@ impl Session for SessionService {
     async fn authenticate(&self, request: Request<Empty>) -> Result<Response<Empty>, Status> {
         let session_handle = request.extensions().get::<SessionHandle>().unwrap();
         let session = session_handle.read().await;
-
-        match session.get::<String>(NONCE_KEY) {
-            Some(_) => (),
-            // Invalid nonce
-            None => return Err(Status::unauthenticated("Failed to get nonce")),
-        }
-
-        let now = match unix_timestamp() {
-            Ok(now) => now,
-            Err(_) => return Err(Status::internal("Failed to get unix timestamp.")),
-        };
-
-        match session.get::<u64>(EXPIRATION_TIME_KEY) {
-            None => return Err(Status::unauthenticated("Failed to get session expiration")),
-            Some(ts) => {
-                if now > ts {
-                    return Err(Status::unauthenticated("Session expired"));
-                }
-            }
-        }
-
-        Ok(Response::new(Empty::default()))
+        authenticate(&session).map(|_| Response::new(Empty::default()))
     }
 }
