@@ -1,18 +1,28 @@
-use ethers::prelude::{Address, LocalWallet, Signer, H160};
+use ethers::prelude::{
+    abigen, Address, Http, JsonRpcClient, LocalWallet, Provider, Signer, Ws, H160,
+};
 use http::Uri;
-use quay::rfq;
-use quay::rfq::rfq_client::RfqClient;
-use quay::rfq::{QuoteRequest, QuoteResponse};
-use quay::session::session_client::SessionClient;
-use quay::session::{Empty, VerifyText};
-use quay::utils::session_interceptor::SessionInterceptor;
+use quay::{
+    rfq,
+    rfq::rfq_client::RfqClient,
+    rfq::{QuoteRequest, QuoteResponse},
+    utils::session_interceptor::SessionInterceptor,
+};
+use quay::{
+    session::session_client::SessionClient,
+    session::{Empty, VerifyText},
+};
 use siwe::{TimeStamp, Version};
-use std::env;
-use std::process::exit;
-use std::str::FromStr;
+use std::{env, process::exit, str::FromStr, sync::Arc};
 use time::OffsetDateTime;
 use tokio::sync::mpsc;
 use tonic::transport::Channel;
+
+abigen!(
+    SettlementEngine,
+    "$CARGO_MANIFEST_DIR/examples/client/abi/OptionSettlementEngine.json",
+    event_derives(serde::Deserialize, serde::Serialize)
+);
 
 const SESSION_COOKIE_KEY: &str = "set-cookie";
 
@@ -22,23 +32,76 @@ const SESSION_COOKIE_KEY: &str = "set-cookie";
 /// `QuoteRequest` and the MM needs to respond with `QuoteResponse`.
 ///
 /// # Usage
-/// `client <quay_server> <wallet_address>`
-/// where:
-/// `<quay_server>`     : The location of the Quay server, for example `http://localhost:8000`
-/// `<wallet_address>`  : The address of the wallet for signing messages.
+/// `client <quay_server> <chain_endpoint> <wallet_address> <settlement_contract_address>`<br>
+/// <br>where:<br>
+/// `<quay_server>`     : The location of the Quay server, for example `http://localhost:8000`.<br>
+/// `<chain_endpoint>`  : The location of the node RPC endpoint, for example `http://localhost:8545`.<br>
+/// `<wallet_address>`  : The address of the wallet for signing messages.<br>
+/// `<settlement_contract_address>` : The address of the Option Settlement contract (optional). If not provided, Address::default() is used.<br>
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = env::args().skip(1).collect();
 
-    if args.len() != 2 {
-        eprintln!("Unexpected command line arguments. Received {args:?}");
-        eprintln!("Usage: example-client quay-server wallet_address");
+    if args.len() != 3 && args.len() != 4 {
+        eprintln!("Unexpected command line arguments. Received {:?}", args);
+        eprintln!("Usage: client <quay_server> <chain_endpoint> <wallet_address> [<settlement_contract_address>]");
         exit(1);
     }
 
     let quay_uri = args[0].parse::<Uri>().unwrap();
-    let (session_cookie, maker_address) = setup(quay_uri.clone(), args[1].to_string()).await;
+    let (session_cookie, maker_address) = setup(quay_uri.clone(), args[2].to_string()).await;
 
+    let settlement_address = if args.len() == 4 {
+        args[3].parse::<Address>()?
+    } else {
+        Address::default()
+    };
+
+    if args[1].starts_with("http") {
+        let provider = Provider::<Http>::try_from(args[1].clone())?;
+        run(
+            Arc::new(provider),
+            quay_uri,
+            session_cookie,
+            maker_address,
+            settlement_address,
+        )
+        .await;
+    } else if args[1].starts_with("ws") {
+        // Websockets (ws & wss)
+        let provider = Provider::<Ws>::new(Ws::connect(args[1].clone()).await?);
+        run(
+            Arc::new(provider),
+            quay_uri,
+            session_cookie,
+            maker_address,
+            settlement_address,
+        )
+        .await;
+    } else {
+        // IPC
+        let provider = Provider::connect_ipc(args[1].clone()).await?;
+        run(
+            Arc::new(provider),
+            quay_uri,
+            session_cookie,
+            maker_address,
+            settlement_address,
+        )
+        .await;
+    }
+
+    Ok(())
+}
+
+// Main execution function
+async fn run<P: JsonRpcClient + 'static>(
+    _provider: Arc<Provider<P>>,
+    quay_uri: Uri,
+    session_cookie: String,
+    maker_address: Address,
+    _settlement_address: Address,
+) {
     // Now there is a valid authenticated session, connect to the RFQ stream
     let mut client = RfqClient::with_interceptor(
         Channel::builder(quay_uri).connect().await.unwrap(),
@@ -49,6 +112,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Client requests are responses to the server.
     let (tx_quote_response, rx_quote_response) = mpsc::channel::<QuoteResponse>(64);
     let (tx_quote_request, mut rx_quote_request) = mpsc::channel::<QuoteRequest>(64);
+
+    // Create the settlement engine contract, you can call `exercise` and other functions on the contract with:
+    // let settlement_contract = SettlementEngine(settlement_address, provider);
+    // settlement_contract.exercise(...).call().await;
 
     // The main task that handles incoming server requests
     let task = tokio::spawn(async move {
@@ -83,7 +150,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // We never expect to get here or the task to end unless the server has disconnected.
     task.await.unwrap();
-    Ok(())
 }
 
 // Handle the quote.

@@ -122,18 +122,19 @@ pub fn run(
         .layer(RequestIdLayer)
         .layer(TraceLayer::new_for_http().make_span_with(TowerMakeSpanWithConstantId))
         .layer(session_layer)
-        .add_service(RfqServer::new(RFQService::new()))
+        .add_service(RfqServer::with_interceptor(
+            RFQService::new(),
+            SessionAuthenticator,
+        ))
         .add_service(SessionServer::new(SessionService::default()))
         .into_service()
         .map_response(|r| r.map(axum::body::boxed))
         .boxed_clone();
 
     let http_grpc = Steer::new(vec![http, grpc], |req: &Request<Body>, _svcs: &[_]| {
-        if req.headers().get(CONTENT_TYPE).map(|v| v.as_bytes()) != Some(b"application/grpc") {
-            0
-        } else {
-            1
-        }
+        usize::from(
+            req.headers().get(CONTENT_TYPE).map(|v| v.as_bytes()) == Some(b"application/grpc"),
+        )
     });
 
     let handle = Handle::new();
