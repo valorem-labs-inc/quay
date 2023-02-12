@@ -15,6 +15,18 @@ use crate::{
 };
 use crate::{database::save_order, structs::OrderInput};
 
+/// Create listing
+///
+/// Create a new listing
+#[utoipa::path(
+    post,
+    path = "/listings",
+    request_body = OrderInput,
+    responses(
+        (status = 200, description = "Create listing successfully"),
+        (status = 500, description = "Failed to create listing")
+    )
+)]
 #[tracing::instrument(
 name = "Adding a new listing",
 skip(db_pool, seaport, session, listing),

@@ -69,7 +69,7 @@ impl Rfq for RFQService {
                                 }
                             }
                             Err(error) => {
-                                eprintln!("RFQService:WebTaker: Error while receiving broadcast requests. Error reported\n{}", error);
+                                eprintln!("RFQService:WebTaker: Error while receiving broadcast requests. Error reported\n{error}");
                                 tx_trader
                                     .send(Err(Status::internal("Internal server error 2")))
                                     .await
@@ -84,8 +84,7 @@ impl Rfq for RFQService {
             }
             Err(error) => {
                 eprintln!(
-                    "RFQService:WebTaker: Error while broadcasting request. Error reported\n{}",
-                    error
+                    "RFQService:WebTaker: Error while broadcasting request. Error reported\n{error}"
                 );
                 tx_trader
                     .send(Err(Status::internal("Internal server error 1")))
@@ -144,7 +143,7 @@ impl Rfq for RFQService {
                                 }
                             },
                             Err(error) => {
-                                eprintln!("RFQService:Taker: Error while handling taker stream. Reported error\n{}", error);
+                                eprintln!("RFQService:Taker: Error while handling taker stream. Reported error\n{error}");
                                 stream_closed = true;
                             }
                         }
@@ -162,7 +161,7 @@ impl Rfq for RFQService {
                                 }
                             },
                             Err(error) => {
-                                eprintln!("RFQService:Taker: Error while reading response broadcast stream. Reported error\n{}", error);
+                                eprintln!("RFQService:Taker: Error while reading response broadcast stream. Reported error\n{error}");
                                 tx_taker.send(Err(Status::internal("Internal server error 3"))).await.unwrap_or_default();
                                 stream_closed = true;
                             }
@@ -209,7 +208,7 @@ impl Rfq for RFQService {
                         match request {
                             Ok(request) => tx_maker.send(Ok(request)).await.unwrap(),
                             Err(error) => {
-                                eprintln!("RFQService:Maker: Request stream has closed. Reported error\n{:?}", error);
+                                eprintln!("RFQService:Maker: Request stream has closed. Reported error\n{error:?}");
                                 tx_maker.send(Err(Status::internal("Internal server error 4"))).await.unwrap_or_default();
                                 stream_closed = true;
                             }
@@ -222,7 +221,7 @@ impl Rfq for RFQService {
                                 match response_tx_stream.send(response) {
                                     Ok(_) => (),
                                     Err(error) => {
-                                        eprintln!("RFQService:Maker: All response tx stream receivers have been dropped. Error reported\n{}", error);
+                                        eprintln!("RFQService:Maker: All response tx stream receivers have been dropped. Error reported\n{error}");
                                         tx_maker.send(Err(Status::internal("Internal server error 5"))).await.unwrap_or_default();
                                         stream_closed = true;
                                     }
@@ -233,7 +232,7 @@ impl Rfq for RFQService {
                                 stream_closed = true;
                             },
                             Err(error) => {
-                                eprintln!("RFQService:Maker: Error while handling maker stream. Reported error\n{:?}", error);
+                                eprintln!("RFQService:Maker: Error while handling maker stream. Reported error\n{error:?}");
                                 stream_closed = true;
                             }
                         }

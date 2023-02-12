@@ -4,6 +4,17 @@ use prometheus::Encoder;
 
 use crate::telemetry::get_metrics_registry;
 
+/// Metrics prometheus
+///
+/// Get prometheus metrics
+#[utoipa::path(
+    get,
+    path = "/metrics/prometheus",
+    responses(
+        (status = 200, description = "Get prometheus matrics"),
+        (status = 500, description = "Failed to encode matrics"),
+    )
+)]
 pub async fn metrics_prometheus() -> impl IntoResponse {
     let prometheus_storage_registry = get_metrics_registry();
     let encoder = prometheus::TextEncoder::new();

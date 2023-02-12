@@ -15,6 +15,18 @@ use crate::{
     database::{save_address, save_consideration, save_offer, save_order},
 };
 
+/// Create offer
+///
+/// Create offer on listing
+#[utoipa::path(
+    post,
+    path = "/offers",
+    request_body = OrderInput,
+    responses(
+        (status = 200, description = "Create offer successfully"),
+        (status = 500, description = "Failed to create offer")
+    )
+)]
 #[tracing::instrument(
 name = "Adding a new offer",
 skip(session, offer, db_pool, seaport),

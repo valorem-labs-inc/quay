@@ -240,4 +240,5 @@ jobs:
         env:
           APP_RPC__URI: ${{ secrets.APP_RPC__URI }}
         with:
+          version: '0.22.0'
           args: '--ignore-tests --avoid-cfg-tarpaulin'

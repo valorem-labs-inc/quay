@@ -9,6 +9,14 @@ use siwe::VerificationOpts;
 
 use crate::auth::*;
 
+#[utoipa::path(
+    get,
+    path = "/nonce",
+    responses(
+        (status = 200, description = "Get nonce for session", body = Stirng),
+        (status = 500, description = "Failed to get nonce")
+    )
+)]
 #[tracing::instrument(name = "Getting an EIP-4361 nonce for session", skip(session))]
 pub async fn get_nonce(mut session: WritableSession) -> impl IntoResponse {
     let nonce = siwe::generate_nonce();
@@ -44,6 +52,19 @@ pub async fn get_nonce(mut session: WritableSession) -> impl IntoResponse {
     (headers, nonce).into_response()
 }
 
+/// Verify
+///
+/// Verify
+#[utoipa::path(
+    post,
+    path = "/verify",
+    request_body = SignedMessage,
+    responses(
+        (status = 200, description = "Successfully verified"),
+        (status = 422, description = "Failed to get nonce or failed to validate signature"),
+        (status = 500, description = "Failed to varify")
+    )
+)]
 #[tracing::instrument(
     name = "Verifying user EIP-4361 session",
     skip(session, signed_message)
@@ -114,6 +135,18 @@ pub async fn verify(
     (StatusCode::OK).into_response()
 }
 
+/// Authenticate
+///
+/// Verify session
+#[utoipa::path(
+    get,
+    path = "/authenticate",
+    responses(
+        (status = 200, description = "Successfully verified session"),
+        (status = 401, description = "Failed to verify session"),
+        (status = 500, description = "Fialed to verify session")
+    )
+)]
 #[tracing::instrument(name = "Checking user EIP-4361 authentication", skip(session))]
 pub async fn authenticate(session: ReadableSession) -> impl IntoResponse {
     verify_session(&session).await

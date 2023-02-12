@@ -24,6 +24,7 @@ use tonic::transport::Server;
 use tower::{make::Shared, steer::Steer, BoxError, ServiceExt};
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
+use utoipa::OpenApi;
 
 use crate::middleware::{track_prometheus_metrics, RequestIdLayer};
 use crate::redis_pool::RedisConnectionManager;
@@ -31,6 +32,7 @@ use crate::rfq::rfq_server::RfqServer;
 use crate::routes::*;
 use crate::services::*;
 use crate::session::session_server::SessionServer;
+use crate::structs::RetrieveResponse;
 use crate::{bindings::Seaport, state::AppState};
 use crate::{
     configuration::{DatabaseSettings, Settings},
@@ -51,6 +53,29 @@ pub fn run(
     session_layer: SessionLayer<RedisSessionStore>,
     rpc: Provider<Http>,
 ) -> BoxFuture<'static, Result<(), std::io::Error>> {
+    #[derive(OpenApi)]
+    #[openapi(
+        paths(
+            health_check,
+            metrics_prometheus,
+            create_listing,
+            retrieve_listings,
+            create_offer,
+            retrieve_offers,
+            get_nonce,
+            verify,
+            authenticate
+        ),
+        components(
+            schemas(RetrieveResponse)
+        ),
+        tags(
+            (name = "quay", description = "Quay is an open source, high performance backend for the Seaport smart 
+            contracts")
+        )
+    )]
+    struct ApiDoc;
+
     let provider = Arc::new(rpc.clone());
 
     let seaport = Seaport::new(
@@ -78,6 +103,10 @@ pub fn run(
         .route("/nonce", get(get_nonce))
         .route("/verify", post(verify))
         .route("/authenticate", get(authenticate))
+        .route(
+            "/spec/v3",
+            get(|| async { ApiDoc::openapi().to_json().unwrap() }),
+        )
         // Layers/middleware
         .layer(TraceLayer::new_for_http().make_span_with(TowerMakeSpanWithConstantId))
         .layer(RequestIdLayer)
